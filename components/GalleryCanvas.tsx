@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import type { Memory } from "@/lib/types";
 import { MILESTONE_ICONS, MILESTONE_LABELS } from "@/lib/types";
 import { formatShortDate } from "@/lib/photos";
+import { WallBackdrop } from "@/components/WallBackdrop";
 
 interface GalleryCanvasProps {
   memories: Memory[];
@@ -222,15 +223,7 @@ export function GalleryCanvas({
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="gallery-wall pointer-events-none absolute inset-0" aria-hidden="true" />
-
-      <div className="gallery-doodles" aria-hidden="true">
-        <span className="gallery-doodle gallery-doodle--a">✦</span>
-        <span className="gallery-doodle gallery-doodle--b">♡</span>
-        <span className="gallery-doodle gallery-doodle--c">★</span>
-        <span className="gallery-doodle gallery-doodle--d">✦</span>
-        <span className="gallery-doodle gallery-doodle--e">♡</span>
-      </div>
+      <WallBackdrop />
 
       {showHint && pool.length > 0 && (
         <p

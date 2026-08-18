@@ -10,6 +10,7 @@ import { deleteMemory } from "@/lib/db";
 import { sharedMemories } from "@/lib/memory-visibility";
 import type { Memory } from "@/lib/types";
 import { LoveLoading } from "@/components/LoveLoading";
+import { WallBackdrop } from "@/components/WallBackdrop";
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -46,9 +47,10 @@ export default function TimelinePage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <WallBackdrop pinned />
       <NavBar />
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] md:px-8">
+      <main className="relative z-[2] mx-auto max-w-5xl px-4 pb-16 pt-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] md:px-8">
         <div className="mb-12">
           <h1
             className="mb-2 text-3xl font-semibold md:text-4xl"
@@ -57,7 +59,7 @@ export default function TimelinePage() {
             Our timeline
           </h1>
           <p style={{ color: "var(--theme-ink-muted)" }}>
-            Every milestone in order — scroll through your story, click to explore.
+            Latest first — scroll back through your story, or jump to the beginning.
           </p>
         </div>
 

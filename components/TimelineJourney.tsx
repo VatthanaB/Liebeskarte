@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Memory } from "@/lib/types";
 import { groupMemoriesByYear } from "@/lib/photos";
 import { TimelineCard } from "./TimelineCard";
@@ -21,8 +21,20 @@ export function TimelineJourney({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [activeYear, setActiveYear] = useState<number | null>(null);
-  const yearGroups = groupMemoriesByYear(memories);
+  const [nearBeginning, setNearBeginning] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const yearGroups = useMemo(
+    () =>
+      groupMemoriesByYear(memories)
+        .map((group) => ({
+          ...group,
+          memories: [...group.memories].sort((a, b) => b.date.localeCompare(a.date)),
+        }))
+        .reverse(),
+    [memories],
+  );
   const years = yearGroups.map((g) => g.year);
+  const oldestMemoryId = yearGroups.at(-1)?.memories.at(-1)?.id;
 
   useEffect(() => {
     if (years.length > 0 && activeYear === null) {
@@ -52,6 +64,14 @@ export function TimelineJourney({
           if (!Number.isNaN(year)) setActiveYear(year);
         }
       }
+
+      setScrolled(window.scrollY > 240);
+
+      const beginning = el.querySelector("[data-timeline-beginning]");
+      if (beginning) {
+        const beginningRect = beginning.getBoundingClientRect();
+        setNearBeginning(beginningRect.top < viewportHeight * 0.85);
+      }
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -70,10 +90,33 @@ export function TimelineJourney({
     }
   }, []);
 
+  const scrollToBeginning = useCallback(() => {
+    const el = containerRef.current?.querySelector("[data-timeline-beginning]");
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+
+  const beginningButtonStyle = {
+    backgroundColor: "var(--theme-surface)",
+    borderColor: "var(--theme-border)",
+    color: "var(--theme-ink)",
+    fontFamily: "var(--font-label)",
+  } as const;
+
   let globalIndex = 0;
 
   return (
     <div className="relative">
+      <div className="mb-10 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={scrollToBeginning}
+          className="inline-flex min-h-11 items-center rounded-full border px-4 text-sm shadow-sm"
+          style={beginningButtonStyle}
+        >
+          Go to the beginning
+        </button>
+      </div>
+
       {/* Year rail — desktop only */}
       <aside
         className="timeline-year-rail pointer-events-none fixed top-1/2 right-4 z-10 hidden -translate-y-1/2 flex-col gap-2 md:flex lg:right-8"
@@ -127,10 +170,12 @@ export function TimelineJourney({
               {yearMemories.map((memory) => {
                 const side = globalIndex % 2 === 0 ? "left" : "right";
                 globalIndex += 1;
+                const isBeginning = memory.id === oldestMemoryId;
 
                 return (
                   <div
                     key={memory.id}
+                    data-timeline-beginning={isBeginning ? "" : undefined}
                     className={`timeline-row relative flex md:w-[calc(50%-2rem)] ${
                       side === "left"
                         ? "md:mr-auto md:pr-8"
@@ -161,6 +206,20 @@ export function TimelineJourney({
           </section>
         ))}
       </div>
+
+      {!nearBeginning && scrolled && (
+        <button
+          type="button"
+          onClick={scrollToBeginning}
+          className="pointer-events-auto fixed left-4 z-[1000] inline-flex min-h-11 items-center rounded-full border px-4 text-sm shadow-sm backdrop-blur-sm"
+          style={{
+            ...beginningButtonStyle,
+            bottom: "max(1.5rem, env(safe-area-inset-bottom))",
+          }}
+        >
+          Go to the beginning
+        </button>
+      )}
     </div>
   );
 }
