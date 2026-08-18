@@ -16,7 +16,7 @@ export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) =
             cookieStore.set(name, value, options)
           );
         } catch {
-          // Called from a Server Component — middleware/proxy refreshes sessions.
+          // Called from a Server Component, middleware/proxy refreshes sessions.
         }
       },
     },

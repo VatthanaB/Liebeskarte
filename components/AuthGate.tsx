@@ -115,7 +115,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             {mode === "in" ? "Welcome back" : "Create your key"}
           </h1>
           <p className="mb-5 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
-            Shared cloud journal — only your allowlisted emails can open it.
+            Shared cloud journal, only your allowlisted emails can open it.
           </p>
 
           <label className="mb-3 block text-sm">

@@ -1,7 +1,7 @@
 import type { Memory } from "./types";
 import { isPersonalMemory } from "./memory-visibility";
 
-/** Same building / map-click jitter — not neighbourhood clustering. */
+/** Same building / map-click jitter, not neighbourhood clustering. */
 const CLUSTER_METERS = 15;
 /** Same street name only clusters when pins are this close (avoids global name collisions). */
 const STREET_CLUSTER_METERS = 500;

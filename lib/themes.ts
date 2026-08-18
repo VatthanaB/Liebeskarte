@@ -26,7 +26,7 @@ export interface ThemeTokens {
 
 export const THEME: ThemeTokens = {
   name: "Warm Atelier",
-  description: "Travel journal — cream paper, terracotta, taped photos",
+  description: "Travel journal, cream paper, terracotta, taped photos",
   fonts: {
     display: "var(--font-playfair), Georgia, serif",
     body: "var(--font-source-serif), Georgia, serif",

@@ -19,7 +19,7 @@ function loadEnvMigrate() {
   const path = join(ROOT, ".env.migrate");
   if (!existsSync(path)) {
     console.error(
-      "Missing web/.env.migrate — copy web/.env.migrate.example and fill in both projects' keys."
+      "Missing web/.env.migrate, copy web/.env.migrate.example and fill in both projects' keys."
     );
     process.exit(1);
   }

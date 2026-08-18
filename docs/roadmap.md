@@ -1,9 +1,9 @@
-# Liebeskarte — Roadmap
+# Liebeskarte, Roadmap
 
-## Phase 1 — Foundation (current)
+## Phase 1, Foundation (current)
 
 - [x] Concept, design system, and roadmap docs
-- [x] Theme mock page (`/styles`) — compare 4 visual directions
+- [x] Theme mock page (`/styles`), compare 4 visual directions
 - [x] Theme system with localStorage persistence
 - [x] Map view with MapLibre, Auckland default, world scope
 - [x] Memory CRUD with Dexie (IndexedDB)
@@ -11,7 +11,7 @@
 - [x] Timeline view
 - [x] Export / import backup
 
-## Phase 2 — Polish
+## Phase 2, Polish
 
 - [ ] Place search via Nominatim geocoding
 - [ ] Fly-to animation when selecting a memory
@@ -21,7 +21,7 @@
 - [ ] Keyboard shortcuts (Esc close card, N new memory)
 - [ ] Loading states and error handling
 
-## Phase 3 — Shared Experience
+## Phase 3, Shared Experience
 
 - [ ] Supabase backend (auth, Postgres, Storage)
 - [ ] Two-person couple account (invite link)
@@ -29,21 +29,21 @@
 - [ ] Conflict resolution (last-write-wins or merge journal)
 - [ ] Partner attribution on entries ("Added by…")
 
-## Phase 4 — Delight
+## Phase 4, Delight
 
 - [ ] Anniversary reminders (email or push)
-- [ ] Year in review — auto-generated recap
+- [ ] Year in review, auto-generated recap
 - [ ] Printed atlas PDF export (architect-friendly layout)
 - [ ] Voice memo attachments
 - [ ] Rich text journal (markdown)
 - [ ] Tags and filtering
 - [ ] Constellation animation mode (Night theme)
 
-## Phase 5 — Gift Mode
+## Phase 5, Gift Mode
 
 - [ ] Onboarding wizard for first-time setup
 - [ ] Pre-seed with "where we met" guided flow
-- [ ] Presentation mode — fullscreen slideshow of memories
+- [ ] Presentation mode, fullscreen slideshow of memories
 - [ ] QR code to open on partner's phone
 - [ ] Optional password lock (local PIN)
 
@@ -61,7 +61,7 @@
 
 ## Standing rules
 
-- **All new UI is mobile-first** — must work on a 375px viewport before shipping (see `docs/design-system.md` → Responsive)
+- **All new UI is mobile-first**, must work on a 375px viewport before shipping (see `docs/design-system.md` → Responsive)
 
 ## Non-Goals (v1)
 

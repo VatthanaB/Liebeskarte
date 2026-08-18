@@ -12,7 +12,7 @@ export function PartnerGate() {
     event.preventDefault();
     setError(null);
     if (signIn(password)) return;
-    setError("Wrong password — try again.");
+    setError("Wrong password, try again.");
     setPassword("");
   }
 

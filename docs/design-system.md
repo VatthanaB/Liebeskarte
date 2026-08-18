@@ -1,4 +1,4 @@
-# Liebeskarte — Design System
+# Liebeskarte, Design System
 
 Four candidate visual directions. Pick one via the `/styles` mock page; the chosen theme becomes the app's default (stored in `localStorage`).
 
@@ -6,13 +6,13 @@ Four candidate visual directions. Pick one via the `/styles` mock page; the chos
 
 ## Shared UX Principles
 
-1. **Map is the hero** — UI chrome stays minimal; the map fills the viewport
-2. **Memory cards feel like artifacts** — not generic modals; each theme gives cards a distinct material quality
-3. **Chronology is visible** — journey line on map, timeline as alternate view
-4. **Typography carries emotion** — display type for titles, readable body for journal text
-5. **Motion is gentle** — fly-to animations on map, soft card transitions (200–300ms)
-6. **Accessible** — 4.5:1 contrast on text, focus rings, keyboard navigation
-7. **Phone-first** — every new feature ships usable on a 375px viewport; desktop is an enhancement, not the default
+1. **Map is the hero**, UI chrome stays minimal; the map fills the viewport
+2. **Memory cards feel like artifacts**, not generic modals; each theme gives cards a distinct material quality
+3. **Chronology is visible**, journey line on map, timeline as alternate view
+4. **Typography carries emotion**, display type for titles, readable body for journal text
+5. **Motion is gentle**, fly-to animations on map, soft card transitions (200–300ms)
+6. **Accessible**, 4.5:1 contrast on text, focus rings, keyboard navigation
+7. **Phone-first**, every new feature ships usable on a 375px viewport; desktop is an enhancement, not the default
 
 ### Shared Spacing Scale
 
@@ -47,7 +47,7 @@ Four candidate visual directions. Pick one via the `/styles` mock page; the chos
 
 | Token | Width | Use |
 |-------|-------|-----|
-| `base` | 0–767px | Phone layout — default for all new UI |
+| `base` | 0–767px | Phone layout, default for all new UI |
 | `md:` | 768px+ | Tablet / desktop enhancements |
 | `lg:` | 1024px+ | Wide layouts (e.g. 4-column album grid) |
 
@@ -55,8 +55,8 @@ Four candidate visual directions. Pick one via the `/styles` mock page; the chos
 
 | Viewport | Pattern |
 |----------|---------|
-| Mobile | Bottom sheet — full width, `max-h-[70vh]`, scrollable |
-| `md+` | Fixed side panel — `w-96`, top-right |
+| Mobile | Bottom sheet, full width, `max-h-[70vh]`, scrollable |
+| `md+` | Fixed side panel, `w-96`, top-right |
 
 Reference: `web/app/MapPageClient.tsx`.
 
@@ -71,7 +71,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ### Layout rules
 
-- Prefer `w-full`, `max-w-*`, `h-dvh`, `inset-0` — never `100vw` / `w-screen`.
+- Prefer `w-full`, `max-w-*`, `h-dvh`, `inset-0`, never `100vw` / `w-screen`.
 - Page content: `mx-auto max-w-* px-4 md:px-8`.
 - Chip / filter rows: `flex flex-wrap gap-2`.
 - Horizontal photo strips: `overflow-x-auto`.
@@ -81,7 +81,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ## Theme 1: Blueprint
 
-*Architectural drafting — technical drawing lines, grid paper, ink blue accent.*
+*Architectural drafting, technical drawing lines, grid paper, ink blue accent.*
 
 ### Colors
 
@@ -119,7 +119,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ## Theme 2: Warm Atelier
 
-*Travel journal — cream paper, serif type, terracotta and sage, taped photos.*
+*Travel journal, cream paper, serif type, terracotta and sage, taped photos.*
 
 ### Colors
 
@@ -129,8 +129,8 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 | `--surface` | `#FFFCF7` | Cards |
 | `--ink` | `#3D3229` | Primary text |
 | `--ink-muted` | `#7A6E63` | Secondary |
-| `--accent` | `#C4704B` | Terracotta — CTAs, markers |
-| `--accent-secondary` | `#6B8F71` | Sage — secondary accents |
+| `--accent` | `#C4704B` | Terracotta, CTAs, markers |
+| `--accent-secondary` | `#6B8F71` | Sage, secondary accents |
 | `--border` | `#E8DFD0` | Soft borders |
 | `--line` | `#C4704B` | Journey line (dashed) |
 
@@ -155,7 +155,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ## Theme 3: Minimal Editorial
 
-*Gallery whitespace — one bold accent, large photography, restrained UI.*
+*Gallery whitespace, one bold accent, large photography, restrained UI.*
 
 ### Colors
 
@@ -165,7 +165,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 | `--surface` | `#FFFFFF` | Cards |
 | `--ink` | `#111111` | Primary text |
 | `--ink-muted` | `#666666` | Secondary |
-| `--accent` | `#E11D48` | Rose — single bold accent |
+| `--accent` | `#E11D48` | Rose, single bold accent |
 | `--border` | `#E5E5E5` | Hairline borders |
 | `--line` | `#111111` | Journey line (thin black) |
 
@@ -189,7 +189,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ## Theme 4: Night Atlas
 
-*Dark elegant map — glowing markers, constellation lines between milestones.*
+*Dark elegant map, glowing markers, constellation lines between milestones.*
 
 ### Colors
 

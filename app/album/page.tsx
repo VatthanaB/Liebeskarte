@@ -25,7 +25,7 @@ export default function AlbumPage() {
             Photo album
           </h1>
           <p style={{ color: "var(--theme-ink-muted)" }}>
-            Every captured moment — tap a photo to relive the memory.
+            Every captured moment, tap a photo to relive the memory.
           </p>
         </div>
 

@@ -30,9 +30,9 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
-  title: "Liebeskarte — Every place we became us",
+  title: "Liebeskarte, Every place we became us",
   description:
-    "Liebeskarte is a private map journal of your relationship — every milestone pinned to the world.",
+    "Liebeskarte is a private map journal of your relationship, every milestone pinned to the world.",
 };
 
 export const viewport: Viewport = {

@@ -117,7 +117,7 @@ export function TimelineJourney({
         </button>
       </div>
 
-      {/* Year rail — desktop only */}
+      {/* Year rail, desktop only */}
       <aside
         className="timeline-year-rail pointer-events-none fixed top-1/2 right-4 z-10 hidden -translate-y-1/2 flex-col gap-2 md:flex lg:right-8"
         aria-hidden="true"
@@ -182,7 +182,7 @@ export function TimelineJourney({
                         : "md:ml-auto md:pl-8"
                     }`}
                   >
-                    {/* Spine node — desktop */}
+                    {/* Spine node, desktop */}
                     <div
                       className="timeline-spine-node absolute top-8 hidden h-4 w-4 -translate-x-1/2 rounded-full border-2 md:block"
                       style={{

@@ -15,7 +15,7 @@ export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
   watercolor: {
     id: "watercolor",
     name: "Watercolor",
-    description: "Painted paper — the cutest journal look",
+    description: "Painted paper, the cutest journal look",
     url: "https://watercolormaps.collection.cooperhewitt.org/tile/watercolor/{z}/{x}/{y}.jpg",
     attribution:
       'Map tiles by <a href="http://stamen.com">Stamen Design</a>, hosted by <a href="https://www.cooperhewitt.org/">Cooper Hewitt</a> · © OpenStreetMap',
@@ -39,7 +39,7 @@ export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
     description: "Illustrated hills and parks",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
     attribution:
-      "Tiles © Esri — Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+      "Tiles © Esri, Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
     maxZoom: 19,
   },
 };

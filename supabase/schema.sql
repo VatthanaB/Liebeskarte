@@ -1,4 +1,4 @@
--- Our Atlas — run this in the Supabase SQL Editor (once).
+-- Our Atlas, run this in the Supabase SQL Editor (once).
 
 create table if not exists public.couple_allowlist (
   email text primary key

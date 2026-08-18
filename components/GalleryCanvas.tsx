@@ -234,7 +234,7 @@ export function GalleryCanvas({
             fontFamily: "var(--font-label)",
           }}
         >
-          Memories wander onto the wall — tap a frame
+          Memories wander onto the wall, tap a frame
         </p>
       )}
 

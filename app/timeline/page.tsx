@@ -59,7 +59,7 @@ export default function TimelinePage() {
             Our timeline
           </h1>
           <p style={{ color: "var(--theme-ink-muted)" }}>
-            Latest first — scroll back through your story, or jump to the beginning.
+            Latest first, scroll back through your story, or jump to the beginning.
           </p>
         </div>
 

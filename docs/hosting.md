@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 
 ## 2. Use the app
 
-Restart the dev server after adding keys. You and your partner share the same Supabase project — no login screen until you enable auth.
+Restart the dev server after adding keys. You and your partner share the same Supabase project, no login screen until you enable auth.
 
 ## 3. Deploy frontend (custom domain, $0)
 
