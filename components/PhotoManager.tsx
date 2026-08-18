@@ -26,6 +26,7 @@ import {
 } from "@/lib/photos";
 import { PhotoLightbox, type LightboxPhoto } from "./PhotoLightbox";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
+import { useConfirm } from "./ConfirmDialog";
 
 type VisibilityFilter = "all" | "visible" | "hidden";
 type PhotoScope = "shared" | "personal";
@@ -71,6 +72,7 @@ function sortManagedPhotos(photos: ManagedPhoto[], sort: PhotoSort): ManagedPhot
 
 export function PhotoManager({ memories }: PhotoManagerProps) {
   const { partner } = useCurrentPartner();
+  const confirm = useConfirm();
   const [photos, setPhotos] = useState<ManagedPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState<PhotoScope>("shared");
@@ -260,9 +262,13 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
 
   async function handleDelete(photo: ManagedPhoto) {
     const memoryTitle = photo.memory?.title ?? "this memory";
-    if (!window.confirm(`Delete this photo from "${memoryTitle}"? This cannot be undone.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: "Delete this photo?",
+      description: `Remove it from “${memoryTitle}”. This cannot be undone.`,
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setBusyId(photo.id);
     setActionError(null);

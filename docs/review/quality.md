@@ -41,14 +41,13 @@ No unit, integration, or e2e tests. Regressions in visibility logic, geocoding, 
 
 | Doc says | Code actually has |
 |----------|-------------------|
-| Dexie / IndexedDB local storage | Supabase Postgres + Storage |
-| MapLibre GL | Leaflet + raster tiles (`lib/map-layers.ts`) |
-| `/styles` theme mock, 4 themes | Single theme in `lib/themes.ts` |
-| Export/import done (Phase 1) | Not implemented |
-| Phase 2: Nominatim, fly-to, fit-all unchecked | Many Phase 2 items are done |
-| Phase 3: Supabase unchecked | Supabase is primary backend |
-| README: only `/` and `/timeline` | Also `/album`, `/settings`, gallery view |
-| concept: JSON backup as v1 source of truth | Cloud is source of truth (`hosting.md`) |
+| Dexie / IndexedDB local storage | **Docs updated** — Supabase Postgres + Storage |
+| MapLibre GL | **Docs updated** — Leaflet + raster tiles |
+| `/styles` theme mock, 4 themes | **Docs updated** — single Warm Atelier theme |
+| Export/import done (Phase 1) | **Docs updated** — still not implemented, marked open |
+| Phase 2 / 3 checkboxes stale | **Docs updated** — roadmap lists Done vs later |
+| README: only `/` and `/timeline` | **Docs updated** — album, settings, gallery listed |
+| concept: JSON backup as v1 source of truth | **Docs updated** — cloud is source of truth |
 
 **Suggested fix:**
 
@@ -64,7 +63,7 @@ No unit, integration, or e2e tests. Regressions in visibility logic, geocoding, 
 
 | Item | File | Notes |
 |------|------|-------|
-| `SAMPLE_MEMORIES` | `lib/sample-data.ts` | Large array unused; only `AUCKLAND_CENTER` imported |
+| `SAMPLE_MEMORIES` | `lib/sample-data.ts` | Full list kept; first four used as `DEMO_MEMORIES` (dev empty-map seed) |
 | Server Supabase client | `utils/supabase/server.ts` | Never imported; prepared for Server Components |
 | Legacy `journal` column | DB + `lib/db.ts` | Migrated to dual journals; column kept for compatibility |
 
@@ -143,10 +142,10 @@ Deploy docs cover Vercel env vars but not pre-merge checks.
 
 When implementing features from other review docs, update:
 
-- [ ] `README.md` — routes, features, export status
-- [ ] `docs/roadmap.md` — phase checkboxes and stack table
-- [ ] `docs/concept.md` — storage and backup story
-- [ ] `docs/design-system.md` — map library and theme count
+- [x] `README.md` — routes, features, export status
+- [x] `docs/roadmap.md` — phase checkboxes and stack table
+- [x] `docs/concept.md` — storage and backup story
+- [x] `docs/design-system.md` — map library and theme count
 - [ ] `docs/hosting.md` — auth-on checklist (align with `review/security.md`)
 
 ---

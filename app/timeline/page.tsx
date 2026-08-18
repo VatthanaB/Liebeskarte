@@ -12,10 +12,12 @@ import { sharedMemories } from "@/lib/memory-visibility";
 import type { Memory } from "@/lib/types";
 import { LoveLoading } from "@/components/LoveLoading";
 import { WallBackdrop } from "@/components/WallBackdrop";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 export default function TimelinePage() {
   const router = useRouter();
   const { memories, loading, error, photoUrlMap, reload } = useMemories();
+  const confirm = useConfirm();
   const sharedOnly = sharedMemories(memories);
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const [dismissedError, setDismissedError] = useState<string | null>(null);
@@ -42,7 +44,13 @@ export default function TimelinePage() {
 
   async function handleDelete() {
     if (!editingMemory) return;
-    if (!confirm("Delete this memory? This cannot be undone.")) return;
+    const confirmed = await confirm({
+      title: "Delete this memory?",
+      description: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
     await deleteMemory(editingMemory.id);
     setEditingMemory(null);
     reload();

@@ -282,5 +282,8 @@ export const SAMPLE_MEMORIES: Memory[] = RAW_SAMPLE_MEMORIES.map((memory) => ({
   owner: null,
 }));
 
+/** Short Auckland cluster for the empty-map demo seed (development only). */
+export const DEMO_MEMORIES = SAMPLE_MEMORIES.slice(0, 4);
+
 export const AUCKLAND_CENTER = { lat: -36.8485, lng: 174.7633, zoom: 11 };
 export const WORLD_VIEW = { lat: -20, lng: 160, zoom: 2 };

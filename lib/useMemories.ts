@@ -7,6 +7,9 @@ import { AUTH_ENABLED, useAuth } from "@/lib/auth";
 import { useShowHiddenPhotos } from "@/components/ShowHiddenPhotosProvider";
 import { useCurrentPartner } from "@/components/CurrentPartnerProvider";
 import { visibleToPartner } from "@/lib/memory-visibility";
+import { createClient, hasSupabaseConfig } from "@/lib/supabase";
+
+const REALTIME_RELOAD_MS = 400;
 
 function loadErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim()) {
@@ -47,7 +50,7 @@ export function useMemories() {
   const [error, setError] = useState<string | null>(null);
   const [photoUrlMap, setPhotoUrlMap] = useState<Record<string, string[]>>({});
 
-  const loadMemories = useCallback(async () => {
+  const loadMemories = useCallback(async (options?: { silent?: boolean }) => {
     if (AUTH_ENABLED && !user) {
       setMemories([]);
       setPhotoUrlMap({});
@@ -56,24 +59,70 @@ export function useMemories() {
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    const silent = options?.silent === true;
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [data, allPhotos] = await Promise.all([getAllMemories(), getAllPhotos()]);
       const visible = data.filter((memory) => visibleToPartner(memory, partner));
       setMemories(visible);
       setPhotoUrlMap(buildPhotoUrlMap(visible, allPhotos, showHiddenPhotos));
+      setError(null);
     } catch (err) {
       console.error("[atlas:db] loadMemories failed", err);
-      setError(loadErrorMessage(err));
+      if (!silent) {
+        setError(loadErrorMessage(err));
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [user, showHiddenPhotos, partner]);
 
   useEffect(() => {
-    loadMemories();
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (!cancelled) void loadMemories();
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [loadMemories]);
+
+  useEffect(() => {
+    if (!hasSupabaseConfig()) return;
+    if (AUTH_ENABLED && !user) return;
+
+    let timeout: number | null = null;
+    const scheduleReload = () => {
+      if (timeout != null) window.clearTimeout(timeout);
+      timeout = window.setTimeout(() => {
+        void loadMemories({ silent: true });
+      }, REALTIME_RELOAD_MS);
+    };
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel("couple-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "memories" },
+        scheduleReload
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "photos" },
+        scheduleReload
+      )
+      .subscribe();
+
+    return () => {
+      if (timeout != null) window.clearTimeout(timeout);
+      void supabase.removeChannel(channel);
+    };
+  }, [user, loadMemories]);
 
   return { memories, loading, error, photoUrlMap, reload: loadMemories };
 }

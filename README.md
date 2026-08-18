@@ -18,7 +18,12 @@ Open [http://localhost:3000](http://localhost:3000) for the map.
 | Route | Description |
 |-------|-------------|
 | `/` | Map view, pins, journey line, memory cards |
+| `/?view=gallery` | Photo wall of shared memories |
 | `/timeline` | Chronological story of all memories |
+| `/album` | Filterable photo album with lightbox |
+| `/settings` | Partner switch, hidden photos, photo manager |
+
+Full route map: [`docs/review/README.md`](docs/review/README.md).
 
 ## Design
 
@@ -32,9 +37,10 @@ All UI is **mobile-first**, every feature must work on a 375px phone viewport. S
 - **Milestone pins**, met, date, trip, home, celebration, custom
 - **Journey line** connecting memories in chronological order
 - **Memory cards** with photos, journal entries, dates
+- **Gallery wall** and **photo album**
 - **Place search** via OpenStreetMap (Nominatim)
 - **Cloud storage**, Supabase Postgres + photo Storage (shared between you two)
-- **Export / import**, optional JSON backup
+- **Live reload** when the other person adds or edits a memory
 - **Warm Atelier design**, cream journal aesthetic throughout
 
 ## Docs

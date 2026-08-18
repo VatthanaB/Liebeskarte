@@ -13,8 +13,21 @@ import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
 import { findLocationGroup } from "@/lib/location-groups";
 import { sharedMemories } from "@/lib/memory-visibility";
+import { seedDemoMemories } from "@/lib/seed-demo";
 import { LoveLoading } from "@/components/LoveLoading";
+import { useConfirm } from "@/components/ConfirmDialog";
 import type { Memory } from "@/lib/types";
+
+function isTypingTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    target.isContentEditable
+  );
+}
 
 type ViewMode = "map" | "gallery";
 
@@ -24,24 +37,32 @@ export default function MapPageClient() {
   const viewMode: ViewMode =
     viewParam === "gallery" || viewParam === "globe" ? "gallery" : "map";
   const { memories, loading, error, photoUrlMap, reload } = useMemories();
+  const confirm = useConfirm();
   const [dismissedError, setDismissedError] = useState<string | null>(null);
-  const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formInitial, setFormInitial] = useState<
     (Partial<Memory> & { lat: number; lng: number }) | undefined
   >(undefined);
   const [flyToId, setFlyToId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedError, setSeedError] = useState<string | null>(null);
+  const canSeedDemo = process.env.NODE_ENV === "development";
 
-  useEffect(() => {
-    const memoryId = searchParams.get("memory");
-    if (memoryId && memories.length > 0) {
-      const memory = memories.find((item) => item.id === memoryId);
-      if (memory) {
-        setSelectedMemory(memory);
-        setFlyToId(memoryId);
-      }
+  const selectedMemory = useMemo(
+    () => (selectedId ? memories.find((item) => item.id === selectedId) ?? null : null),
+    [memories, selectedId]
+  );
+
+  const memoryParam = searchParams.get("memory");
+  const [appliedParam, setAppliedParam] = useState<string | null>(null);
+  if (memoryParam !== appliedParam) {
+    setAppliedParam(memoryParam);
+    if (memoryParam) {
+      setSelectedId(memoryParam);
+      setFlyToId(memoryParam);
     }
-  }, [searchParams, memories]);
+  }
 
   const galleryMemories = useMemo(() => sharedMemories(memories), [memories]);
 
@@ -51,14 +72,14 @@ export default function MapPageClient() {
   );
 
   const handleSelectMemory = useCallback((memory: Memory) => {
-    setSelectedMemory(memory);
+    setSelectedId(memory.id);
     setShowForm(false);
   }, []);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     setFormInitial({ lat, lng });
     setShowForm(true);
-    setSelectedMemory(null);
+    setSelectedId(null);
   }, []);
 
   const handleAddNew = useCallback(() => {
@@ -69,15 +90,64 @@ export default function MapPageClient() {
       address: "Auckland, New Zealand",
     });
     setShowForm(true);
-    setSelectedMemory(null);
+    setSelectedId(null);
   }, []);
+
+  const handleCloseEditor = useCallback(() => {
+    setShowForm(false);
+    setFormInitial(undefined);
+  }, []);
+
+  const handleSeedDemo = useCallback(async () => {
+    setSeeding(true);
+    setSeedError(null);
+    try {
+      await seedDemoMemories();
+      await reload();
+    } catch (err) {
+      console.error("[atlas:seed] failed", err);
+      setSeedError("Couldn't load the sample journey. Try again.");
+    } finally {
+      setSeeding(false);
+    }
+  }, [reload]);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (isTypingTarget(event.target)) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      if (event.key === "Escape") {
+        if (showForm) {
+          handleCloseEditor();
+          return;
+        }
+        if (selectedId) {
+          setSelectedId(null);
+        }
+        return;
+      }
+
+      if (
+        (event.key === "n" || event.key === "N") &&
+        viewMode === "map" &&
+        !showForm
+      ) {
+        event.preventDefault();
+        handleAddNew();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleAddNew, handleCloseEditor, selectedId, showForm, viewMode]);
 
   const handleSave = useCallback(
     (memory: Memory) => {
       setShowForm(false);
       setFormInitial(undefined);
       reload();
-      setSelectedMemory(memory);
+      setSelectedId(memory.id);
     },
     [reload]
   );
@@ -90,16 +160,22 @@ export default function MapPageClient() {
 
   const handleDelete = useCallback(async () => {
     if (!selectedMemory) return;
-    if (!confirm("Delete this memory? This cannot be undone.")) return;
+    const confirmed = await confirm({
+      title: "Delete this memory?",
+      description: "This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
     const remaining = selectedGroup.filter(
       (memory) => memory.id !== selectedMemory.id
     );
     await deleteMemory(selectedMemory.id);
     setShowForm(false);
     setFormInitial(undefined);
-    setSelectedMemory(remaining[remaining.length - 1] ?? null);
+    setSelectedId(remaining[remaining.length - 1]?.id ?? null);
     reload();
-  }, [selectedMemory, selectedGroup, reload]);
+  }, [selectedMemory, selectedGroup, reload, confirm]);
 
   const panelOpen = showForm || !!selectedMemory;
   const memoryPanelOpen = !!selectedMemory && !showForm;
@@ -184,6 +260,23 @@ export default function MapPageClient() {
             >
               Add your first memory
             </button>
+            {canSeedDemo && (
+              <button
+                type="button"
+                onClick={handleSeedDemo}
+                disabled={seeding}
+                className="mt-3 min-h-11 rounded-full border px-6 py-2 text-sm font-medium disabled:opacity-50"
+                style={{
+                  borderColor: "var(--theme-border)",
+                  color: "var(--theme-ink)",
+                }}
+              >
+                {seeding ? "Loading sample…" : "Preview sample journey"}
+              </button>
+            )}
+            {seedError && (
+              <p className="mt-3 text-xs text-red-600">{seedError}</p>
+            )}
           </div>
         </div>
       )}
@@ -194,19 +287,13 @@ export default function MapPageClient() {
             type="button"
             className="absolute inset-0 bg-black/40"
             aria-label="Close editor"
-            onClick={() => {
-              setShowForm(false);
-              setFormInitial(undefined);
-            }}
+            onClick={handleCloseEditor}
           />
           <div className="relative z-10 w-full max-w-md pointer-events-auto">
             <AddMemoryForm
               initial={formInitial}
               onSave={handleSave}
-              onCancel={() => {
-                setShowForm(false);
-                setFormInitial(undefined);
-              }}
+              onCancel={handleCloseEditor}
               onDelete={formInitial.id ? handleDelete : undefined}
             />
           </div>
@@ -221,14 +308,14 @@ export default function MapPageClient() {
               selectedId={selectedMemory!.id}
               photoUrlMap={photoUrlMap}
               onSelect={handleSelectMemory}
-              onClose={() => setSelectedMemory(null)}
+              onClose={() => setSelectedId(null)}
               onEdit={handleEdit}
             />
           ) : (
             <MemoryCard
               memory={selectedMemory!}
               photoUrls={photoUrlMap[selectedMemory!.id] ?? []}
-              onClose={() => setSelectedMemory(null)}
+              onClose={() => setSelectedId(null)}
               onEdit={handleEdit}
             />
           )}

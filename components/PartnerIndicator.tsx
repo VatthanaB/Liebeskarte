@@ -3,6 +3,7 @@
 import type { PartnerId } from "@/lib/types";
 import { PARTNERS } from "@/lib/types";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
+import { useConfirm } from "./ConfirmDialog";
 
 function PartnerIcon({ partner }: { partner: PartnerId }) {
   if (partner === "panda") {
@@ -44,16 +45,16 @@ function PartnerIcon({ partner }: { partner: PartnerId }) {
 
 export function PartnerIndicator() {
   const { partner, signOut } = useCurrentPartner();
+  const confirm = useConfirm();
   const name = PARTNERS[partner].label;
 
-  function handleSwitch() {
-    if (
-      window.confirm(
-        `Switch from ${name}? You'll need to enter your password again.`
-      )
-    ) {
-      signOut();
-    }
+  async function handleSwitch() {
+    const confirmed = await confirm({
+      title: `Switch from ${name}?`,
+      description: "You'll need to enter a password again to open the other view.",
+      confirmLabel: "Switch user",
+    });
+    if (confirmed) signOut();
   }
 
   return (

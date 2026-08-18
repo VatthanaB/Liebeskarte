@@ -186,3 +186,27 @@ alter table public.memories
 create index if not exists memories_visibility_idx on public.memories (visibility);
 create index if not exists memories_owner_idx on public.memories (owner);
 
+-- Realtime: partners see each other's edits without refreshing.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'memories'
+  ) then
+    alter publication supabase_realtime add table public.memories;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'photos'
+  ) then
+    alter publication supabase_realtime add table public.photos;
+  end if;
+end $$;
+

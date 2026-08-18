@@ -13,7 +13,7 @@ This folder documents findings and **implementation status** per category. Use i
 | Security | [security.md](./security.md) | Not started — **P0 before public deploy** |
 | Reliability & performance | [reliability-and-performance.md](./reliability-and-performance.md) | **Mostly done** — batch photos, errors, map empty/loading, upload limits, lazy images |
 | Mobile & accessibility | [mobile-and-accessibility.md](./mobile-and-accessibility.md) | **Done** — 44px targets, focus traps, skip link, lightbox safe areas |
-| Product gaps | [product.md](./product.md) | Not started — export/import, README sync, realtime |
+| Product gaps | [product.md](./product.md) | **Mostly done** — empty map, README, realtime, confirms, shortcuts. Export/import still deferred |
 | Quality & tests | [quality.md](./quality.md) | Not started — Vitest, CI, docs drift |
 
 ---
@@ -64,7 +64,7 @@ Suggested order when implementing:
 1. Enable auth, drop open anon RLS, wire middleware
 2. Map Supabase users to partners; enforce personal/journal privacy in Postgres
 3. ~~Batch photo loading, surface errors, map empty/loading states~~ ✓
-4. ~~Tap targets, a11y~~ ✓ — export/import or doc fix still open
+4. ~~Tap targets, a11y, product polish~~ ✓ — export/import still deferred
 5. Vitest, CI, sync stale docs
 
 Do **not** treat P0 as a single PR with everything else. Auth + RLS is a coordinated cutover (app flag, SQL, allowlist, middleware).
@@ -78,7 +78,7 @@ Do **not** treat P0 as a single PR with everything else. Auth + RLS is a coordin
 | [security.md](./security.md) | Open anon RLS, disabled auth, partner passwords, client-only privacy, middleware |
 | [reliability-and-performance.md](./reliability-and-performance.md) | N+1 photos, errors, map loading — **mostly implemented** |
 | [mobile-and-accessibility.md](./mobile-and-accessibility.md) | 44px targets, focus traps, skip link — **implemented** |
-| [product.md](./product.md) | Missing flows, export/import gap, routes vs README |
+| [product.md](./product.md) | Product polish — **mostly implemented**; export/import still open |
 | [quality.md](./quality.md) | Zero tests, dead code, stale concept/roadmap/design-system |
 
 ---
@@ -87,7 +87,7 @@ Do **not** treat P0 as a single PR with everything else. Auth + RLS is a coordin
 
 | Doc | Purpose |
 |-----|---------|
-| [../hosting.md](../hosting.md) | Deploy steps (note: mentions auth-off mode and export) |
-| [../concept.md](../concept.md) | Product vision (partially outdated — see quality.md) |
-| [../roadmap.md](../roadmap.md) | Phase plan (partially outdated — see quality.md) |
-| [../design-system.md](../design-system.md) | UI tokens and responsive rules |
+| [../hosting.md](../hosting.md) | Deploy steps (auth-off mode; realtime SQL for existing projects) |
+| [../concept.md](../concept.md) | Product vision |
+| [../roadmap.md](../roadmap.md) | Done vs later phases |
+| [../design-system.md](../design-system.md) | Warm Atelier tokens and responsive rules |

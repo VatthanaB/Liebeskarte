@@ -5,6 +5,7 @@ import { NavBar } from "@/components/NavBar";
 import { PartnerIndicator } from "@/components/PartnerIndicator";
 import { PhotoManager } from "@/components/PhotoManager";
 import { ShowHiddenPhotosSetting } from "@/components/ShowHiddenPhotosSetting";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { LoveLoading } from "@/components/LoveLoading";
@@ -42,6 +43,8 @@ export default function SettingsPage() {
         <PartnerIndicator />
 
         <ShowHiddenPhotosSetting />
+
+        <KeyboardShortcuts />
 
         <section>
           <h2

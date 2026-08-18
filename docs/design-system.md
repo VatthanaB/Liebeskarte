@@ -1,6 +1,8 @@
 # Liebeskarte, Design System
 
-Four candidate visual directions. Pick one via the `/styles` mock page; the chosen theme becomes the app's default (stored in `localStorage`).
+The app ships **Warm Atelier** only (`lib/themes.ts`, `ThemeProvider.tsx`). There is no `/styles` page and no theme picker.
+
+The other three directions below are historical sketches, kept for reference.
 
 ---
 
@@ -30,14 +32,13 @@ Four candidate visual directions. Pick one via the `/styles` mock page; the chos
 
 | Component | Description |
 |-----------|-------------|
-| `MapCanvas` | Full-viewport MapLibre map with themed style |
+| `MapCanvas` | Full-viewport Leaflet map with raster layers |
 | `MemoryMarker` | Pin on map, color/icon by milestone type |
-| `JourneyLine` | GeoJSON line connecting pins chronologically |
+| `JourneyLine` | Line connecting pins chronologically |
 | `MemoryCard` | Slide-over panel with photo, title, date, journal |
 | `TimelineItem` | Row in timeline view |
 | `AddMemoryForm` | Form for new/edit memory |
-| `ThemePicker` | Theme selection (settings or `/styles`) |
-| `ExportImport` | Backup buttons |
+| `ConfirmDialog` | Themed confirm (delete / switch user) |
 
 ---
 
@@ -79,7 +80,13 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ---
 
-## Theme 1: Blueprint
+## Shipped theme: Warm Atelier
+
+See **Theme 2** below for tokens. Map tiles are Leaflet raster layers (watercolor / Voyager / terrain), not MapLibre.
+
+---
+
+## Theme 1: Blueprint (unused)
 
 *Architectural drafting, technical drawing lines, grid paper, ink blue accent.*
 
@@ -117,7 +124,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ---
 
-## Theme 2: Warm Atelier
+## Theme 2: Warm Atelier (shipped)
 
 *Travel journal, cream paper, serif type, terracotta and sage, taped photos.*
 
@@ -153,7 +160,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ---
 
-## Theme 3: Minimal Editorial
+## Theme 3: Minimal Editorial (unused)
 
 *Gallery whitespace, one bold accent, large photography, restrained UI.*
 
@@ -187,7 +194,7 @@ Use `env(safe-area-inset-*)` on fixed chrome (nav, bottom sheets, map controls) 
 
 ---
 
-## Theme 4: Night Atlas
+## Theme 4: Night Atlas (unused)
 
 *Dark elegant map, glowing markers, constellation lines between milestones.*
 

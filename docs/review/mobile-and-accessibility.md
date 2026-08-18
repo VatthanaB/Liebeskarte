@@ -165,7 +165,7 @@ Last updated after mobile/a11y pass (August 2026). Cross-reference [reliability-
 
 ## Remaining / optional follow-ups
 
-- Themed confirm dialog instead of `window.confirm()` (product polish)
+- ~~Themed confirm dialog instead of `window.confirm()`~~ ✓ (`ConfirmDialog.tsx`)
 - Broader alt-text audit for edit-form previews
 - Focus trap on timeline backdrop click-only overlay (form trap covers focus today)
 - Manual 375px QA pass on device or simulator

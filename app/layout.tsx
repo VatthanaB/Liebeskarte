@@ -5,6 +5,7 @@ import {
   Source_Sans_3,
 } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { CurrentPartnerProvider } from "@/components/CurrentPartnerProvider";
 import { ShowHiddenPhotosProvider } from "@/components/ShowHiddenPhotosProvider";
 import { AuthProvider } from "@/lib/auth";
@@ -52,17 +53,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           Skip to main content
         </a>
         <ThemeProvider>
-          <CurrentPartnerProvider>
-            <ShowHiddenPhotosProvider>
-              <AuthProvider>
-                <AuthGate>
-                  <div id="main-content" className="flex min-h-full flex-1 flex-col">
-                    {children}
-                  </div>
-                </AuthGate>
-              </AuthProvider>
-            </ShowHiddenPhotosProvider>
-          </CurrentPartnerProvider>
+          <ConfirmProvider>
+            <CurrentPartnerProvider>
+              <ShowHiddenPhotosProvider>
+                <AuthProvider>
+                  <AuthGate>
+                    <div id="main-content" className="flex min-h-full flex-1 flex-col">
+                      {children}
+                    </div>
+                  </AuthGate>
+                </AuthProvider>
+              </ShowHiddenPhotosProvider>
+            </CurrentPartnerProvider>
+          </ConfirmProvider>
         </ThemeProvider>
       </body>
     </html>

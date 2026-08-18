@@ -31,8 +31,8 @@ Think of it as a shared diary with a map as its spine. The map lets you wander s
 - Title, date, location name, coordinates
 - Milestone type with distinct marker styling
 - Journal entry (rich text in future; plain text in v1)
-- Photo attachments (stored locally)
-- Tags for filtering (optional v1.1)
+- Photo attachments (Supabase Storage)
+- Tags for filtering (optional later)
 
 ### Timeline View
 - Scrollable chronological list of all memories
@@ -44,10 +44,11 @@ Think of it as a shared diary with a map as its spine. The map lets you wander s
 - Fill in memory details and attach photos
 - Edit or delete existing memories
 
-### Backup & Share
-- Export everything (memories + photos) to a single JSON file
-- Import on your partner's device, no account needed
-- Local-first: all data lives in the browser (IndexedDB)
+### Shared cloud
+- Memories live in Supabase Postgres; photos live in Supabase Storage
+- Both of you use the same project
+- Edits reload live while you are both in the app
+- JSON export / import is not built yet
 
 ## Milestone Types
 
@@ -68,7 +69,8 @@ Think of it as a shared diary with a map as its spine. The map lets you wander s
 
 ## Future Ideas (v2+)
 
-- **Cloud sync**, Supabase backend, two-person accounts, real-time shared updates
+- **Couple login**, Supabase auth and allowlist (prepared, currently off)
+- **JSON backup**, export / import of memories and photo metadata
 - **Anniversary reminders**, gentle notifications on milestone dates
 - **Printed atlas export**, PDF or print-ready layout for a physical gift
 - **Constellation mode**, night theme with animated lines between stars

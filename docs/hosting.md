@@ -37,4 +37,10 @@ Restart the dev server after adding keys. You and your partner share the same Su
 | Who can see it | `couple_allowlist` + login |
 | The Next.js app | Vercel + your domain |
 
-Export still works as an extra backup file. It is not the source of truth anymore.
+Supabase is the source of truth. JSON export / import is not built yet.
+
+## 4. Realtime (existing projects)
+
+New projects that run [`supabase/schema.sql`](../supabase/schema.sql) already publish `memories` and `photos` to Realtime.
+
+If the database already exists, run [`supabase/migrate-realtime.sql`](../supabase/migrate-realtime.sql) in the SQL editor so both partners see edits without refreshing.
