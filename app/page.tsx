@@ -1,15 +1,10 @@
 import { Suspense } from "react";
+import { LoveLoading } from "@/components/LoveLoading";
 import MapPageClient from "./MapPageClient";
 
 export default function Page() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center">
-          <p style={{ color: "var(--theme-ink-muted)" }}>Loading Liebeskarte...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoveLoading variant="page" />}>
       <MapPageClient />
     </Suspense>
   );

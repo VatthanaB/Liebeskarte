@@ -11,8 +11,8 @@ interface GalleryCanvasProps {
   selectedId?: string | null;
   onSelectMemory?: (memory: Memory) => void;
   flyToId?: string | null;
-  controlsOffset?: number;
   hideControls?: boolean;
+  loading?: boolean;
 }
 
 interface GalleryEntry {
@@ -39,20 +39,20 @@ const SWAP_MS = 4500;
 const HINT_MS = 5200;
 
 const MOBILE_SLOTS: SlotLayout[] = [
-  { top: "19%", left: "5%", width: "42%", z: 2 },
-  { top: "28%", left: "53%", width: "42%", z: 3 },
-  { top: "52%", left: "24%", width: "50%", z: 4 },
+  { top: "4%", left: "4%", width: "40%", z: 2 },
+  { top: "14%", left: "56%", width: "40%", z: 3 },
+  { top: "48%", left: "26%", width: "44%", z: 4 },
 ];
 
 const DESKTOP_SLOTS: SlotLayout[] = [
-  { top: "18%", left: "5%", width: "16%", z: 2 },
-  { top: "16%", left: "24%", width: "20%", z: 4 },
-  { top: "20%", left: "48%", width: "15%", z: 2 },
-  { top: "22%", left: "66%", width: "16%", z: 3 },
-  { top: "52%", left: "4%", width: "18%", z: 3 },
-  { top: "48%", left: "26%", width: "24%", z: 5 },
-  { top: "54%", left: "54%", width: "17%", z: 2 },
-  { top: "50%", left: "74%", width: "18%", z: 3 },
+  { top: "5%", left: "8%", width: "16%", z: 2 },
+  { top: "1%", left: "26%", width: "18%", z: 4 },
+  { top: "7%", left: "46%", width: "15%", z: 2 },
+  { top: "3%", left: "64%", width: "16%", z: 3 },
+  { top: "46%", left: "10%", width: "16%", z: 3 },
+  { top: "42%", left: "28%", width: "19%", z: 5 },
+  { top: "48%", left: "50%", width: "16%", z: 2 },
+  { top: "44%", left: "68%", width: "16%", z: 3 },
 ];
 
 function buildPool(
@@ -147,8 +147,8 @@ export function GalleryCanvas({
   selectedId,
   onSelectMemory,
   flyToId,
-  controlsOffset = 0,
   hideControls = false,
+  loading = false,
 }: GalleryCanvasProps) {
   const isDesktop = useMediaFlag("(min-width: 768px)");
   const reduceMotion = useMediaFlag("(prefers-reduced-motion: reduce)");
@@ -209,9 +209,10 @@ export function GalleryCanvas({
     setHanging(fillWall(pool, slots.length, selectedId));
   }, [pool, slots.length, selectedId]);
 
-  const showHint = !hintTimedOut && reduceMotion !== true && pool.length > 0;
+  const showEmpty = !loading && layoutReady && pool.length === 0;
+  const showHint = !hintTimedOut && reduceMotion !== true && pool.length > 0 && !loading;
+  const showShuffle = pool.length > 0 && !hideControls && !(selectedId && isDesktop !== true);
 
-  const controlBottom = `max(calc(1.5rem + ${controlsOffset}px), calc(env(safe-area-inset-bottom) + ${controlsOffset}px))`;
   const controlStyle = {
     backgroundColor: "var(--theme-surface)",
     borderColor: "var(--theme-border)",
@@ -244,7 +245,7 @@ export function GalleryCanvas({
         </p>
       )}
 
-      {pool.length === 0 && (
+      {showEmpty && (
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center px-6"
         >
@@ -257,58 +258,60 @@ export function GalleryCanvas({
         </div>
       )}
 
-      {hanging.map((piece) => {
-        const slot = slots[piece.slotIndex];
-        if (!slot) return null;
-        const selected = piece.entry.memory.id === selectedId;
-        const { memory, photoUrl } = piece.entry;
+      <div className="gallery-stage">
+        {hanging.map((piece) => {
+          const slot = slots[piece.slotIndex];
+          if (!slot) return null;
+          const selected = piece.entry.memory.id === selectedId;
+          const { memory, photoUrl } = piece.entry;
 
-        return (
-          <button
-            key={piece.instanceId}
-            type="button"
-            className={`gallery-frame pointer-events-auto ${selected ? "gallery-frame--selected" : ""} ${reduceMotion ? "gallery-frame--still" : ""}`}
-            style={{
-              top: slot.top,
-              left: slot.left,
-              width: slot.width,
-              zIndex: selected ? 20 : slot.z,
-              "--tilt": `${piece.tilt}deg`,
-            } as CSSProperties}
-            onClick={() => onSelectMemory?.(memory)}
-            aria-label={`${memory.title}, ${formatShortDate(memory.date)}, ${memory.placeName}`}
-          >
-            <span className="gallery-frame__nail" aria-hidden="true" />
-            <span className="gallery-frame__wire" aria-hidden="true" />
-            <div className="gallery-frame__mat">
-              <span className="photo-tape photo-tape--tl" />
-              {photoUrl ? (
-                <div className="gallery-frame__photo">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoUrl} alt="" />
+          return (
+            <button
+              key={piece.instanceId}
+              type="button"
+              className={`gallery-frame pointer-events-auto ${selected ? "gallery-frame--selected" : ""} ${reduceMotion ? "gallery-frame--still" : ""}`}
+              style={{
+                top: slot.top,
+                left: slot.left,
+                width: slot.width,
+                zIndex: selected ? 20 : slot.z,
+                "--tilt": `${piece.tilt}deg`,
+              } as CSSProperties}
+              onClick={() => onSelectMemory?.(memory)}
+              aria-label={`${memory.title}, ${formatShortDate(memory.date)}, ${memory.placeName}`}
+            >
+              <span className="gallery-frame__nail" aria-hidden="true" />
+              <span className="gallery-frame__wire" aria-hidden="true" />
+              <div className="gallery-frame__mat">
+                <span className="photo-tape photo-tape--tl" />
+                {photoUrl ? (
+                  <div className="gallery-frame__photo">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photoUrl} alt="" />
+                  </div>
+                ) : (
+                  <div className="gallery-frame__plaque">
+                    <span className="gallery-frame__icon">{MILESTONE_ICONS[memory.type]}</span>
+                    <p className="gallery-frame__title">{memory.title}</p>
+                    <p className="gallery-frame__type">{MILESTONE_LABELS[memory.type]}</p>
+                  </div>
+                )}
+                <div className="gallery-frame__caption">
+                  <p className="truncate">{memory.title}</p>
+                  <p className="truncate opacity-70">
+                    {formatShortDate(memory.date)} · {memory.placeName}
+                  </p>
                 </div>
-              ) : (
-                <div className="gallery-frame__plaque">
-                  <span className="gallery-frame__icon">{MILESTONE_ICONS[memory.type]}</span>
-                  <p className="gallery-frame__title">{memory.title}</p>
-                  <p className="gallery-frame__type">{MILESTONE_LABELS[memory.type]}</p>
-                </div>
-              )}
-              <div className="gallery-frame__caption">
-                <p className="truncate">{memory.title}</p>
-                <p className="truncate opacity-70">
-                  {formatShortDate(memory.date)} · {memory.placeName}
-                </p>
               </div>
-            </div>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+      </div>
 
-      {pool.length > 0 && !hideControls && (
+      {showShuffle && (
         <div
-          className="pointer-events-auto absolute left-4 z-[1000] transition-[bottom] duration-300"
-          style={{ bottom: controlBottom }}
+          className="pointer-events-auto absolute left-4 z-[1000]"
+          style={{ bottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
         >
           <div
             className="flex items-center rounded-full border p-0.5 shadow-sm backdrop-blur-sm"

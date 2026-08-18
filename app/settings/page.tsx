@@ -5,6 +5,7 @@ import { PartnerIndicator } from "@/components/PartnerIndicator";
 import { PhotoManager } from "@/components/PhotoManager";
 import { ShowHiddenPhotosSetting } from "@/components/ShowHiddenPhotosSetting";
 import { useMemories } from "@/lib/useMemories";
+import { LoveLoading } from "@/components/LoveLoading";
 
 export default function SettingsPage() {
   const { memories, loading } = useMemories();
@@ -39,7 +40,7 @@ export default function SettingsPage() {
             Photo management
           </h2>
           {loading ? (
-            <p style={{ color: "var(--theme-ink-muted)" }}>Loading...</p>
+            <LoveLoading />
           ) : (
             <PhotoManager memories={memories} />
           )}

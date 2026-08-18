@@ -13,6 +13,7 @@ import {
   getAllPhotos,
   updatePhotoHidden,
 } from "@/lib/db";
+import { LoveLoading } from "@/components/LoveLoading";
 import {
   formatShortDate,
   getMemoryMonth,
@@ -293,7 +294,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
   };
 
   if (loading) {
-    return <p style={{ color: "var(--theme-ink-muted)" }}>Loading photos...</p>;
+    return <LoveLoading />;
   }
 
   if (manageablePhotos.length === 0) {

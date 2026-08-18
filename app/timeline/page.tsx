@@ -9,6 +9,7 @@ import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
 import { sharedMemories } from "@/lib/memory-visibility";
 import type { Memory } from "@/lib/types";
+import { LoveLoading } from "@/components/LoveLoading";
 
 export default function TimelinePage() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function TimelinePage() {
         </div>
 
         {loading ? (
-          <p style={{ color: "var(--theme-ink-muted)" }}>Loading...</p>
+          <LoveLoading />
         ) : sharedOnly.length === 0 ? (
           <div
             className="rounded-xl border p-8 text-center"

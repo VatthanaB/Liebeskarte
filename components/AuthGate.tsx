@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AUTH_ENABLED, useAuth } from "@/lib/auth";
+import { LoveLoading } from "@/components/LoveLoading";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading, configured, signIn, signUp } = useAuth();
@@ -68,11 +69,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p style={{ color: "var(--theme-ink-muted)" }}>Opening Liebeskarte...</p>
-      </div>
-    );
+    return <LoveLoading variant="page" />;
   }
 
   if (!user) {

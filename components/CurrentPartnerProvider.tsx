@@ -10,6 +10,7 @@ import {
 import { partnerFromPassword } from "@/lib/partner-auth";
 import type { PartnerId } from "@/lib/types";
 import { PartnerGate } from "./PartnerGate";
+import { LoveLoading } from "./LoveLoading";
 
 const STORAGE_KEY = "liebeskarte-partner";
 
@@ -52,9 +53,7 @@ export function CurrentPartnerProvider({ children }: { children: ReactNode }) {
   return (
     <PartnerSessionContext.Provider value={{ partner, ready, signIn, signOut }}>
       {!ready ? (
-        <div className="flex min-h-dvh items-center justify-center">
-          <p style={{ color: "var(--theme-ink-muted)" }}>Opening Liebeskarte...</p>
-        </div>
+        <LoveLoading variant="page" />
       ) : partner ? (
         children
       ) : (

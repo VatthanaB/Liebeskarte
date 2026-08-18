@@ -6,6 +6,7 @@ import { AlbumGrid } from "@/components/AlbumGrid";
 import { useMemories } from "@/lib/useMemories";
 import { sharedMemories } from "@/lib/memory-visibility";
 import { flattenPhotos } from "@/lib/photos";
+import { LoveLoading } from "@/components/LoveLoading";
 
 export default function AlbumPage() {
   const { memories, loading, photoUrlMap } = useMemories();
@@ -29,7 +30,7 @@ export default function AlbumPage() {
         </div>
 
         {loading ? (
-          <p style={{ color: "var(--theme-ink-muted)" }}>Loading...</p>
+          <LoveLoading />
         ) : (
           <AlbumGrid memories={memories} photoUrlMap={photoUrlMap} />
         )}

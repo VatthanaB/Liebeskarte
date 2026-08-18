@@ -180,10 +180,28 @@ body {
   100% { opacity: 0; }
 }
 
+.gallery-stage {
+  position: absolute;
+  top: max(5.75rem, calc(env(safe-area-inset-top) + 4.25rem));
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
+  left: max(1.25rem, env(safe-area-inset-left));
+}
+
+@media (min-width: 768px) {
+  .gallery-stage {
+    top: max(5.25rem, calc(env(safe-area-inset-top) + 3.75rem));
+    right: max(1.75rem, env(safe-area-inset-right));
+    bottom: max(3.75rem, calc(env(safe-area-inset-bottom) + 2.75rem));
+    left: max(1.75rem, env(safe-area-inset-left));
+  }
+}
+
 .gallery-frame {
   position: absolute;
   min-height: 44px;
   min-width: 44px;
+  max-width: min(11.5rem, 26vh);
   padding: 0;
   border: 0;
   background: transparent;
@@ -191,6 +209,12 @@ body {
   touch-action: manipulation;
   transform-origin: 50% 0%;
   animation: galleryPop 0.7s cubic-bezier(0.22, 1.15, 0.36, 1) both;
+}
+
+@media (min-width: 768px) {
+  .gallery-frame {
+    max-width: min(13.5rem, 28vh);
+  }
 }
 
 .gallery-frame:focus-visible {
@@ -322,11 +346,82 @@ body {
   50% { transform: rotate(var(--tilt, -2deg)) translateY(-5px); }
 }
 
+.love-loading {
+  display: flex;
+  max-width: 20rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.love-loading__heart {
+  color: var(--theme-accent);
+  font-size: 1.15rem;
+  animation: loveLoadingPulse 1.2s ease-in-out infinite;
+}
+
+.love-loading__phrase {
+  margin: 0;
+  min-height: 2.5rem;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--theme-ink);
+}
+
+.love-loading__phrase--in {
+  animation: loveLoadingIn 0.22s ease-out both;
+}
+
+.love-loading__phrase--out {
+  animation: loveLoadingOut 0.16s ease-in both;
+}
+
+@keyframes loveLoadingPulse {
+  0%,
+  100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+@keyframes loveLoadingIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loveLoadingOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (min-width: 768px) {
+  .love-loading__phrase {
+    font-size: 2rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gallery-doodle,
   .gallery-hint,
   .gallery-frame,
-  .gallery-frame__mat {
+  .gallery-frame__mat,
+  .love-loading__heart,
+  .love-loading__phrase--in,
+  .love-loading__phrase--out {
     animation: none;
   }
 }

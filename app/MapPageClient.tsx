@@ -12,6 +12,7 @@ import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
 import { findLocationGroup } from "@/lib/location-groups";
 import { sharedMemories } from "@/lib/memory-visibility";
+import { LoveLoading } from "@/components/LoveLoading";
 import type { Memory } from "@/lib/types";
 
 type ViewMode = "map" | "gallery";
@@ -130,8 +131,8 @@ export default function MapPageClient() {
             selectedId={selectedMemory?.id}
             onSelectMemory={handleSelectMemory}
             flyToId={flyToId}
-            controlsOffset={memoryPanelOpen ? 280 : 0}
             hideControls={showForm}
+            loading={loading}
           />
         </div>
       )}
@@ -145,11 +146,7 @@ export default function MapPageClient() {
         />
       </div>
 
-      {loading && (
-        <div className="pointer-events-none absolute inset-0 z-[1000] flex items-center justify-center">
-          <p style={{ color: "var(--theme-ink-muted)" }}>Loading Liebeskarte...</p>
-        </div>
-      )}
+      {loading && viewMode === "gallery" && <LoveLoading variant="overlay" />}
 
       {showForm && formInitial && (
         <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
