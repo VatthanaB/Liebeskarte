@@ -1,26 +1,322 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --theme-bg: #F5F0E8;
+  --theme-surface: #FFFCF7;
+  --theme-ink: #3D3229;
+  --theme-ink-muted: #7A6E63;
+  --theme-accent: #C4704B;
+  --theme-accent-light: #F0E4D8;
+  --theme-border: #E8DFD0;
+  --theme-line: #C4704B;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-source-serif);
+  --font-display: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow-x: clip;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body, var(--font-source-serif), Georgia, serif);
+  background: var(--theme-bg);
+  color: var(--theme-ink);
 }
+
+/* Safe-area helpers for notched devices */
+.safe-area-top {
+  padding-top: max(2rem, env(safe-area-inset-top));
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-x {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.map-container,
+.leaflet-container {
+  width: 100% !important;
+  height: 100dvh !important;
+  background: #eadfcf;
+  isolation: isolate;
+  z-index: 0;
+}
+
+.leaflet-container {
+  font-family: var(--font-label), system-ui, sans-serif;
+}
+
+.memory-marker-wrap {
+  background: none !important;
+  border: none !important;
+}
+
+.memory-marker:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.globe-container {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(180deg, rgba(245, 240, 232, 0.18), rgba(245, 240, 232, 0.08)),
+    url("/globe/sky.png") center / cover no-repeat,
+    #f3e6d4;
+}
+
+.globe-doodles {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.globe-doodle {
+  position: absolute;
+  color: #c4704b;
+  opacity: 0.55;
+  font-size: 1.15rem;
+  animation: globeDoodleFloat 7s ease-in-out infinite;
+}
+
+.globe-doodle--a { top: 18%; left: 8%; animation-delay: 0s; }
+.globe-doodle--b { top: 28%; right: 10%; font-size: 1.4rem; animation-delay: 1.2s; }
+.globe-doodle--c { bottom: 22%; left: 14%; animation-delay: 2s; }
+.globe-doodle--d { top: 12%; right: 28%; font-size: 0.95rem; animation-delay: 3.1s; }
+.globe-doodle--e { bottom: 16%; right: 18%; animation-delay: 4s; }
+
+@keyframes globeDoodleFloat {
+  0%,
+  100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-10px) rotate(8deg); }
+}
+
+.globe-cloud {
+  pointer-events: none;
+  line-height: 0;
+  filter: drop-shadow(1px 2px 0 rgba(61, 50, 41, 0.12));
+}
+
+.globe-cloud svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.map-view-fade {
+  animation: mapViewFadeIn 0.45s ease-out;
+}
+
+@keyframes mapViewFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.globe-memory-marker {
+  position: relative;
+  width: var(--marker-size, 34px);
+  height: var(--marker-size, 34px);
+  border-radius: 50%;
+  border: 2.5px solid #3d3229;
+  background: #fffcf7;
+  color: var(--marker-color, var(--theme-accent));
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 3px 0 #3d3229;
+  transform: rotate(-6deg);
+  transition: transform 200ms ease;
+}
+
+.globe-memory-marker__icon {
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.globe-memory-marker--selected {
+  animation: globeMarkerWiggle 1.4s ease-in-out infinite;
+}
+
+@keyframes globeMarkerWiggle {
+  0%,
+  100% { transform: rotate(-8deg) scale(1.08); }
+  50% { transform: rotate(8deg) scale(1.16); }
+}
+
+.globe-memory-marker:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 3px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 3px;
+}
+
+/* ── Photo tape corners (Warm Atelier scrapbook) ── */
+.photo-tape {
+  position: absolute;
+  width: 2.5rem;
+  height: 1rem;
+  background: rgba(255, 252, 247, 0.55);
+  box-shadow: 0 1px 2px rgba(61, 50, 41, 0.12);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.photo-tape--tl {
+  top: -0.35rem;
+  left: 1.25rem;
+  transform: rotate(-4deg);
+}
+
+.photo-tape--tr {
+  top: -0.35rem;
+  right: 1.25rem;
+  transform: rotate(3deg);
+}
+
+/* ── Timeline scroll reveal ── */
+.timeline-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.timeline-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.timeline-card__inner {
+  transition: transform 0.3s ease;
+}
+
+.timeline-card__inner:hover {
+  transform: rotate(0deg) !important;
+}
+
+.timeline-card--expanded .timeline-card__inner {
+  transform: rotate(0deg) !important;
+}
+
+/* ── Timeline spine ── */
+.timeline-spine {
+  z-index: 0;
+}
+
+.timeline-spine__fill {
+  will-change: transform;
+}
+
+.timeline-spine-node {
+  z-index: 1;
+}
+
+.timeline-year-heading {
+  position: relative;
+}
+
+.timeline-year-heading::after {
+  content: "";
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin: 0.75rem auto 0;
+  background: var(--theme-accent);
+  opacity: 0.4;
+}
+
+.timeline-year-rail__dot {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.timeline-year-rail__dot:hover {
+  opacity: 1 !important;
+}
+
+/* ── Photo lightbox ── */
+.photo-lightbox {
+  animation: lightboxFadeIn 0.25s ease-out;
+}
+
+.photo-lightbox__backdrop {
+  animation: lightboxFadeIn 0.25s ease-out;
+}
+
+.photo-lightbox__content {
+  animation: lightboxSlideUp 0.3s ease-out;
+}
+
+.photo-lightbox__nav {
+  font-size: 2rem;
+  line-height: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  cursor: pointer;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightboxSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Album mosaic ── */
+.album-tile {
+  will-change: transform;
+}
+
+.album-tile:hover {
+  transform: rotate(0deg) !important;
+}
+
+.album-filter-chip {
+  cursor: pointer;
+  border: none;
+}
+
+.album-filter-chip:hover {
+  opacity: 0.85;
+}
+

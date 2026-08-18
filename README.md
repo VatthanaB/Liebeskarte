@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Liebeskarte
+
+A private map journal of your relationship milestones — from Auckland to the world.
+
+**Liebeskarte** is German for *love map*. **Every place we became us.**
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) for the map.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | Description |
+|-------|-------------|
+| `/` | Map view — pins, journey line, memory cards |
+| `/timeline` | Chronological story of all memories |
 
-## Learn More
+## Design
 
-To learn more about Next.js, take a look at the following resources:
+**Warm Atelier** — cream paper, terracotta accents, serif typography, travel-journal feel.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All UI is **mobile-first** — every feature must work on a 375px phone viewport. See [`docs/design-system.md`](docs/design-system.md) → Responsive.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
+- **World map** with Auckland as home base
+- **Milestone pins** — met, date, trip, home, celebration, custom
+- **Journey line** connecting memories in chronological order
+- **Memory cards** with photos, journal entries, dates
+- **Place search** via OpenStreetMap (Nominatim)
+- **Cloud storage** — Supabase Postgres + photo Storage (shared between you two)
+- **Export / import** — optional JSON backup
+- **Warm Atelier design** — cream journal aesthetic throughout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Docs
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [`docs/`](docs/) for concept, design system, and roadmap.
+
+## Stack
+
+- Next.js 16 + React 19
+- Tailwind CSS v4
+- Leaflet + watercolor / Voyager / terrain map layers
+- Supabase (database, photos, login)
+
+## Setup
+
+See [`docs/hosting.md`](docs/hosting.md). Copy `env.example` to `.env.local` and run [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL editor.
