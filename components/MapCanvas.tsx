@@ -34,43 +34,53 @@ function buildMarkerMarkup(group: Memory[], isSelected: boolean): {
   anchorX: number;
   anchorY: number;
 } {
+  const hit = 44;
+
   if (group.length === 1) {
     const memory = group[0];
     const color = THEME.markerColors[memory.type];
-    const size = isSelected ? 36 : 28;
+    const visual = isSelected ? 36 : 28;
     return {
-      width: size,
-      height: size,
-      anchorX: size / 2,
-      anchorY: size / 2,
+      width: hit,
+      height: hit,
+      anchorX: hit / 2,
+      anchorY: hit / 2,
       html: `<button type="button" class="memory-marker" aria-label="${escapeHtml(memory.title)}" style="
-            width:${size}px;height:${size}px;border-radius:50%;
+            width:${hit}px;height:${hit}px;min-width:${hit}px;min-height:${hit}px;
+            padding:0;border:none;background:transparent;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+          "><span style="
+            width:${visual}px;height:${visual}px;border-radius:50%;
             background:${color};color:#fff;border:2px solid #FFFCF7;
-            font-size:${isSelected ? 14 : 11}px;cursor:pointer;
+            font-size:${isSelected ? 14 : 11}px;
             display:flex;align-items:center;justify-content:center;
             box-shadow:0 2px 6px rgba(0,0,0,0.25);
-          ">${MILESTONE_ICONS[memory.type]}</button>`,
+          ">${MILESTONE_ICONS[memory.type]}</span></button>`,
     };
   }
 
   const newest = group[group.length - 1];
   const color = THEME.markerColors[newest.type];
   const count = group.length;
-  const size = isSelected ? 36 : 32;
+  const visual = isSelected ? 36 : 32;
 
   return {
-    width: size,
-    height: size,
-    anchorX: size / 2,
-    anchorY: size / 2,
+    width: hit,
+    height: hit,
+    anchorX: hit / 2,
+    anchorY: hit / 2,
     html: `<button type="button" class="memory-marker memory-marker--cluster${isSelected ? " memory-marker--selected" : ""}" aria-label="${count} memories at this place" style="
-            width:${size}px;height:${size}px;border-radius:50%;
+            width:${hit}px;height:${hit}px;min-width:${hit}px;min-height:${hit}px;
+            padding:0;border:none;background:transparent;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;
+          "><span style="
+            width:${visual}px;height:${visual}px;border-radius:50%;
             background:${color};color:#fff;border:2px solid #FFFCF7;
-            font-size:${isSelected ? 15 : 13}px;cursor:pointer;
+            font-size:${isSelected ? 15 : 13}px;
             display:flex;align-items:center;justify-content:center;
             box-shadow:0 2px 8px rgba(0,0,0,0.28);font-weight:700;
             font-family:system-ui,sans-serif;
-          ">${count}</button>`,
+          ">${count}</span></button>`,
   };
 }
 
@@ -151,10 +161,8 @@ export function MapCanvas({
     }
 
     tiles.on("load", () => {
-      console.log("[atlas:map] tiles loaded", id);
+      // Tile layer ready
     });
-
-    console.log("[atlas:map] layer", id);
   }, []);
 
   const selectLayer = useCallback(
@@ -168,31 +176,16 @@ export function MapCanvas({
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) {
-      console.warn("[atlas:map] no container on init");
-      return;
-    }
+    if (!container) return;
 
     let disposed = false;
     let resizeObserver: ResizeObserver | null = null;
     let createdMap: LeafletMap | null = null;
-    let onResize: (() => void) | null = null;
-
-    container.style.width = `${window.innerWidth}px`;
-    container.style.height = `${window.innerHeight}px`;
-    console.log("[atlas:map] container px", {
-      w: container.offsetWidth,
-      h: container.offsetHeight,
-      inner: [window.innerWidth, window.innerHeight],
-    });
 
     (async () => {
       try {
         const L = await loadLeaflet();
-        if (disposed || !containerRef.current) {
-          console.log("[atlas:map] skipped create, disposed after import");
-          return;
-        }
+        if (disposed || !containerRef.current) return;
 
         const map = L.map(containerRef.current, {
           zoomControl: false,
@@ -224,23 +217,14 @@ export function MapCanvas({
         lineRef.current = line;
         setMapReady(true);
 
-        const size = map.getSize();
-        console.log("[atlas:map] created", { x: size.x, y: size.y, zoom: map.getZoom() });
-
         const refreshSize = () => {
           if (!containerRef.current || disposed) return;
-          containerRef.current.style.width = `${window.innerWidth}px`;
-          containerRef.current.style.height = `${window.innerHeight}px`;
           map.invalidateSize();
-          const next = map.getSize();
-          console.log("[atlas:map] invalidateSize", { x: next.x, y: next.y });
         };
 
-        onResize = refreshSize;
         requestAnimationFrame(refreshSize);
         window.setTimeout(refreshSize, 50);
         window.setTimeout(refreshSize, 300);
-        window.addEventListener("resize", refreshSize);
 
         resizeObserver = new ResizeObserver(refreshSize);
         resizeObserver.observe(containerRef.current);
@@ -251,24 +235,17 @@ export function MapCanvas({
 
     return () => {
       disposed = true;
-      if (onResize) window.removeEventListener("resize", onResize);
       resizeObserver?.disconnect();
       createdMap?.remove();
       if (mapRef.current === createdMap) {
         mapRef.current = null;
         lineRef.current = null;
       }
-      console.log("[atlas:map] cleanup");
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    console.log("[atlas:map] markers effect", {
-      mapReady,
-      hasMap: Boolean(map),
-      count: memories.length,
-    });
     if (!mapReady || !map || !leafletModule) return;
 
     const L = leafletModule;
@@ -372,7 +349,7 @@ export function MapCanvas({
           <button
             type="button"
             onClick={cycleLayer}
-            className="flex h-8 min-w-8 items-center justify-center rounded-full px-2 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full px-2 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
             aria-label={`Map style: ${MAP_LAYERS[layerId].name}. Tap to change.`}
             title={MAP_LAYERS[layerId].name}
           >
@@ -400,7 +377,7 @@ export function MapCanvas({
           <button
             type="button"
             onClick={goHome}
-            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
             aria-label="Go to Auckland"
             title="Auckland"
           >
@@ -428,7 +405,7 @@ export function MapCanvas({
               <button
                 type="button"
                 onClick={fitAll}
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
                 aria-label="Fit all memories"
                 title="Fit all"
               >

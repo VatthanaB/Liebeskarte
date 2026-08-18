@@ -49,8 +49,10 @@ export function LoveLoading({ variant = "inline" }: { variant?: LoveLoadingVaria
       className="love-loading"
       role="status"
       aria-live="polite"
-      aria-atomic="true"
+      aria-busy="true"
+      aria-label="Loading"
     >
+      <span className="sr-only">Loading</span>
       <span className="love-loading__heart" aria-hidden="true">
         ♡
       </span>

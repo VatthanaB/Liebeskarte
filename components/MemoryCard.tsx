@@ -131,6 +131,7 @@ export function MemoryCard({
           <img
             src={photoUrls[0]}
             alt={memory.title}
+            loading="lazy"
             className="h-full w-full object-cover"
           />
           <div className="absolute -top-2 left-6 h-8 w-16 rotate-[-2deg] bg-white/40 shadow-sm" />
@@ -197,9 +198,10 @@ export function MemoryCard({
               {photoUrls.slice(1).map((url, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  key={i}
+                  key={url}
                   src={url}
-                  alt=""
+                  alt={`${memory.title}, photo ${i + 2}`}
+                  loading="lazy"
                   className="h-16 w-16 shrink-0 rounded-lg object-cover"
                 />
               ))}

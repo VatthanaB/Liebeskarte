@@ -1,6 +1,7 @@
 import { createClient } from "./supabase";
 import { emptyJournals } from "./journals";
 import { preparePhotoFile } from "./photo-file";
+import { validatePhotoFile, MAX_PHOTO_BYTES } from "./photo-limits";
 import type {
   JournalEntry,
   Memory,
@@ -93,15 +94,35 @@ function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
   };
 }
 
+const SIGNED_URL_TTL_SEC = 60 * 60 * 24;
+/** Refresh cached URLs one hour before expiry. */
+const SIGNED_URL_REFRESH_BUFFER_MS = 60 * 60 * 1000;
+
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+
+export function invalidateSignedUrl(path: string): void {
+  signedUrlCache.delete(path);
+}
+
 async function signedUrl(path: string): Promise<string> {
+  const cached = signedUrlCache.get(path);
+  if (cached && cached.expiresAt > Date.now() + SIGNED_URL_REFRESH_BUFFER_MS) {
+    return cached.url;
+  }
+
   const supabase = createClient();
   const { data, error } = await supabase.storage
     .from(PHOTO_BUCKET)
-    .createSignedUrl(path, 60 * 60 * 24);
+    .createSignedUrl(path, SIGNED_URL_TTL_SEC);
   if (error || !data?.signedUrl) {
     console.error("[atlas:db] signed url failed", error);
     return "";
   }
+
+  signedUrlCache.set(path, {
+    url: data.signedUrl,
+    expiresAt: Date.now() + SIGNED_URL_TTL_SEC * 1000,
+  });
   return data.signedUrl;
 }
 
@@ -165,6 +186,9 @@ export async function deleteMemory(id: string): Promise<void> {
   const supabase = createClient();
   const photos = await getPhotosForMemory(id);
   if (photos.length > 0) {
+    for (const photo of photos) {
+      invalidateSignedUrl(photo.path);
+    }
     await supabase.storage.from(PHOTO_BUCKET).remove(photos.map((photo) => photo.path));
   }
   const { error } = await supabase.from("memories").delete().eq("id", id);
@@ -210,8 +234,19 @@ export async function savePhoto(input: {
   file: File;
   hidden?: boolean;
 }): Promise<Photo> {
+  const validationError = validatePhotoFile(input.file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const supabase = createClient();
   const file = await preparePhotoFile(input.file);
+
+  if (file.size > MAX_PHOTO_BYTES) {
+    const mb = Math.round(MAX_PHOTO_BYTES / (1024 * 1024));
+    throw new Error(`Photo must be under ${mb} MB after conversion.`);
+  }
+
   const safeName = file.name.replace(/[^\w.\-]+/g, "_");
   const path = `${input.memoryId}/${input.id}-${safeName}`;
 
@@ -248,6 +283,7 @@ export async function deletePhoto(id: string): Promise<void> {
   const { data, error } = await supabase.from("photos").select("path").eq("id", id).maybeSingle();
   if (error) throw error;
   if (data?.path) {
+    invalidateSignedUrl(data.path as string);
     await supabase.storage.from(PHOTO_BUCKET).remove([data.path as string]);
   }
   const { error: deleteError } = await supabase.from("photos").delete().eq("id", id);

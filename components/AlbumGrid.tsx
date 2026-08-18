@@ -297,6 +297,7 @@ export function AlbumGrid({ memories, photoUrlMap }: AlbumGridProps) {
                         <img
                           src={entry.url}
                           alt={entry.memory.title}
+                          loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="photo-tape photo-tape--tl" />

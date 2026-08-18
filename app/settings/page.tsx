@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { NavBar } from "@/components/NavBar";
 import { PartnerIndicator } from "@/components/PartnerIndicator";
 import { PhotoManager } from "@/components/PhotoManager";
 import { ShowHiddenPhotosSetting } from "@/components/ShowHiddenPhotosSetting";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { LoveLoading } from "@/components/LoveLoading";
 
 export default function SettingsPage() {
-  const { memories, loading } = useMemories();
+  const { memories, loading, error, reload } = useMemories();
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen">
@@ -27,6 +30,14 @@ export default function SettingsPage() {
             after 1 hour).
           </p>
         </div>
+
+        {error && error !== dismissedError && (
+          <DataErrorBanner
+            message={error}
+            onRetry={reload}
+            onDismiss={() => setDismissedError(error)}
+          />
+        )}
 
         <PartnerIndicator />
 

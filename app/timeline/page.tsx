@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { NavBar } from "@/components/NavBar";
 import { AddMemoryForm } from "@/components/AddMemoryForm";
 import { TimelineJourney } from "@/components/TimelineJourney";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
 import { sharedMemories } from "@/lib/memory-visibility";
@@ -14,9 +15,10 @@ import { WallBackdrop } from "@/components/WallBackdrop";
 
 export default function TimelinePage() {
   const router = useRouter();
-  const { memories, loading, photoUrlMap, reload } = useMemories();
+  const { memories, loading, error, photoUrlMap, reload } = useMemories();
   const sharedOnly = sharedMemories(memories);
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!editingMemory) return;
@@ -62,6 +64,14 @@ export default function TimelinePage() {
             Latest first, scroll back through your story, or jump to the beginning.
           </p>
         </div>
+
+        {error && error !== dismissedError && (
+          <DataErrorBanner
+            message={error}
+            onRetry={reload}
+            onDismiss={() => setDismissedError(error)}
+          />
+        )}
 
         {loading ? (
           <LoveLoading />

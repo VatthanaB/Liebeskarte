@@ -14,6 +14,7 @@ import {
   updatePhotoHidden,
 } from "@/lib/db";
 import { LoveLoading } from "@/components/LoveLoading";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
 import {
   formatShortDate,
   getMemoryMonth,
@@ -80,6 +81,8 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
   const [sort, setSort] = useState<PhotoSort>("event-date-desc");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const memoryById = useMemo(
     () => new Map(memories.map((memory) => [memory.id, memory])),
@@ -116,6 +119,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
 
   const loadPhotos = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const rows = await getAllPhotos();
       setPhotos(
@@ -126,6 +130,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
       );
     } catch (error) {
       console.error("[atlas:photos] load failed", error);
+      setLoadError("Couldn't load photos. Check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -236,6 +241,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
 
   async function handleToggleHidden(photo: ManagedPhoto) {
     setBusyId(photo.id);
+    setActionError(null);
     try {
       const nextHidden = !photo.hidden;
       await updatePhotoHidden(photo.id, nextHidden);
@@ -246,6 +252,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
       );
     } catch (error) {
       console.error("[atlas:photos] toggle hidden failed", error);
+      setActionError("Couldn't update photo visibility. Try again.");
     } finally {
       setBusyId(null);
     }
@@ -258,12 +265,14 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     }
 
     setBusyId(photo.id);
+    setActionError(null);
     try {
       await deletePhoto(photo.id);
       setPhotos((prev) => prev.filter((item) => item.id !== photo.id));
       setLightboxIndex(null);
     } catch (error) {
       console.error("[atlas:photos] delete failed", error);
+      setActionError("Couldn't delete photo. Try again.");
     } finally {
       setBusyId(null);
     }
@@ -297,6 +306,10 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     return <LoveLoading />;
   }
 
+  if (loadError) {
+    return <DataErrorBanner message={loadError} onRetry={loadPhotos} />;
+  }
+
   if (manageablePhotos.length === 0) {
     return (
       <div
@@ -315,6 +328,14 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
 
   return (
     <>
+      {actionError && (
+        <div className="mb-4">
+          <DataErrorBanner
+            message={actionError}
+            onDismiss={() => setActionError(null)}
+          />
+        </div>
+      )}
       <div className="mb-6 flex flex-wrap gap-2">
         {(["shared", "personal"] as PhotoScope[]).map((value) => {
           const active = scope === value;
@@ -547,6 +568,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
                             <img
                               src={photo.url}
                               alt={memory?.title ?? photo.name}
+                              loading="lazy"
                               className={`h-full w-full object-cover ${photo.hidden ? "opacity-60" : ""}`}
                             />
                           ) : (

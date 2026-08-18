@@ -1,0 +1,93 @@
+# Solution Review
+
+**Liebeskarte** — architecture and improvement backlog from a full review of the `web/` app (August 2026).
+
+This folder documents findings and **implementation status** per category. Use it as a backlog for remaining work (security, product, quality).
+
+---
+
+## Implementation progress
+
+| Category | Doc | Status |
+|----------|-----|--------|
+| Security | [security.md](./security.md) | Not started — **P0 before public deploy** |
+| Reliability & performance | [reliability-and-performance.md](./reliability-and-performance.md) | **Mostly done** — batch photos, errors, map empty/loading, upload limits, lazy images |
+| Mobile & accessibility | [mobile-and-accessibility.md](./mobile-and-accessibility.md) | **Done** — 44px targets, focus traps, skip link, lightbox safe areas |
+| Product gaps | [product.md](./product.md) | Not started — export/import, README sync, realtime |
+| Quality & tests | [quality.md](./quality.md) | Not started — Vitest, CI, docs drift |
+
+---
+
+## What is working well
+
+The core product is in good shape for a private couple’s journal:
+
+| Area | Notes |
+|------|-------|
+| **Domain model** | Partners (`panda` / `henne`), shared vs personal memories, dual journals, hidden photos — see `lib/types.ts` |
+| **Data boundary** | All Supabase CRUD in `lib/db.ts`; shared hook `lib/useMemories.ts` across map, timeline, album, settings |
+| **Routes** | `/` (map + gallery), `/timeline`, `/album`, `/settings` |
+| **Mobile patterns** | Bottom sheets on phone, side panels on `md+`, safe-area padding, no `100vw` — see `app/MapPageClient.tsx` |
+| **Map** | Leaflet dynamically imported; layer switch; journey line; fly-to via `?memory=` |
+| **Photos** | HEIC conversion deferred; Supabase Storage with signed URLs |
+| **TypeScript** | Strict mode; typed domain model; minimal `any` |
+| **Auth (prepared)** | Supabase login, allowlist, and couple RLS exist but are not enabled yet |
+
+---
+
+## Architecture at a glance
+
+```
+Browser (client components)
+  → lib/db.ts (Supabase browser client)
+  → Postgres (memories, photos) + Storage (memory-photos)
+
+Partner gate (client password + localStorage) — UX only, not security
+Auth gate (AUTH_ENABLED = false) — bypassed today
+```
+
+There are **no API routes** and **no server actions**. Every read and write goes from the browser with the public anon/publishable key. Security must come from RLS — and open anon policies are active while auth is off.
+
+---
+
+## Priority overview
+
+| Priority | Category | Doc |
+|----------|----------|-----|
+| **P0** | Security — do before any public URL | [security.md](./security.md) |
+| **P1** | Reliability and performance | [reliability-and-performance.md](./reliability-and-performance.md) |
+| **P2** | Mobile, accessibility, product polish | [mobile-and-accessibility.md](./mobile-and-accessibility.md), [product.md](./product.md) |
+| **P3** | Quality, tests, docs drift | [quality.md](./quality.md) |
+
+Suggested order when implementing:
+
+1. Enable auth, drop open anon RLS, wire middleware
+2. Map Supabase users to partners; enforce personal/journal privacy in Postgres
+3. ~~Batch photo loading, surface errors, map empty/loading states~~ ✓
+4. ~~Tap targets, a11y~~ ✓ — export/import or doc fix still open
+5. Vitest, CI, sync stale docs
+
+Do **not** treat P0 as a single PR with everything else. Auth + RLS is a coordinated cutover (app flag, SQL, allowlist, middleware).
+
+---
+
+## Category index
+
+| File | Contents |
+|------|----------|
+| [security.md](./security.md) | Open anon RLS, disabled auth, partner passwords, client-only privacy, middleware |
+| [reliability-and-performance.md](./reliability-and-performance.md) | N+1 photos, errors, map loading — **mostly implemented** |
+| [mobile-and-accessibility.md](./mobile-and-accessibility.md) | 44px targets, focus traps, skip link — **implemented** |
+| [product.md](./product.md) | Missing flows, export/import gap, routes vs README |
+| [quality.md](./quality.md) | Zero tests, dead code, stale concept/roadmap/design-system |
+
+---
+
+## Related docs
+
+| Doc | Purpose |
+|-----|---------|
+| [../hosting.md](../hosting.md) | Deploy steps (note: mentions auth-off mode and export) |
+| [../concept.md](../concept.md) | Product vision (partially outdated — see quality.md) |
+| [../roadmap.md](../roadmap.md) | Phase plan (partially outdated — see quality.md) |
+| [../design-system.md](../design-system.md) | UI tokens and responsive rules |

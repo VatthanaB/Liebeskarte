@@ -8,6 +8,7 @@ import { MemoryCard } from "@/components/MemoryCard";
 import { MemoryStack } from "@/components/MemoryStack";
 import { AddMemoryForm } from "@/components/AddMemoryForm";
 import { NavBar } from "@/components/NavBar";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
 import { findLocationGroup } from "@/lib/location-groups";
@@ -18,17 +19,12 @@ import type { Memory } from "@/lib/types";
 type ViewMode = "map" | "gallery";
 
 export default function MapPageClient() {
-  console.log("[atlas:page] MapPageClient render start");
   const searchParams = useSearchParams();
   const viewParam = searchParams.get("view");
   const viewMode: ViewMode =
     viewParam === "gallery" || viewParam === "globe" ? "gallery" : "map";
-  const { memories, loading, photoUrlMap, reload } = useMemories();
-  console.log("[atlas:page] memories", {
-    loading,
-    count: memories.length,
-    ids: memories.map((memory) => memory.id),
-  });
+  const { memories, loading, error, photoUrlMap, reload } = useMemories();
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formInitial, setFormInitial] = useState<
@@ -37,7 +33,6 @@ export default function MapPageClient() {
   const [flyToId, setFlyToId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("[atlas:page] MapPageClient mounted");
     const memoryId = searchParams.get("memory");
     if (memoryId && memories.length > 0) {
       const memory = memories.find((item) => item.id === memoryId);
@@ -108,6 +103,9 @@ export default function MapPageClient() {
 
   const panelOpen = showForm || !!selectedMemory;
   const memoryPanelOpen = !!selectedMemory && !showForm;
+  const showError = Boolean(error) && error !== dismissedError;
+  const showMapEmpty =
+    viewMode === "map" && !loading && !error && memories.length === 0 && !showForm;
 
   return (
     <div className="relative h-dvh w-full overflow-hidden">
@@ -146,7 +144,49 @@ export default function MapPageClient() {
         />
       </div>
 
-      {loading && viewMode === "gallery" && <LoveLoading variant="overlay" />}
+      {loading && (viewMode === "gallery" || viewMode === "map") && (
+        <LoveLoading variant="overlay" />
+      )}
+
+      {showError && (
+        <div className="pointer-events-none absolute inset-x-0 top-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] z-[1050] px-4">
+          <DataErrorBanner
+            message={error!}
+            onRetry={reload}
+            onDismiss={() => setDismissedError(error!)}
+          />
+        </div>
+      )}
+
+      {showMapEmpty && (
+        <div className="pointer-events-none absolute inset-0 z-[900] flex items-center justify-center p-6">
+          <div
+            className="pointer-events-auto max-w-sm rounded-xl border p-8 text-center shadow-sm backdrop-blur-sm"
+            style={{
+              borderColor: "var(--theme-border)",
+              backgroundColor: "color-mix(in srgb, var(--theme-surface) 92%, transparent)",
+            }}
+          >
+            <p
+              className="text-lg font-semibold"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Your map is waiting
+            </p>
+            <p className="mt-2 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
+              Pin your first memory — where you met, a favourite trip, or home.
+            </p>
+            <button
+              type="button"
+              onClick={handleAddNew}
+              className="mt-5 min-h-11 rounded-full px-6 py-2 text-sm font-medium text-white"
+              style={{ backgroundColor: "var(--theme-accent)" }}
+            >
+              Add your first memory
+            </button>
+          </div>
+        </div>
+      )}
 
       {showForm && formInitial && (
         <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">

@@ -212,7 +212,7 @@ export function GalleryCanvas({
 
   const showEmpty = !loading && layoutReady && pool.length === 0;
   const showHint = !hintTimedOut && reduceMotion !== true && pool.length > 0 && !loading;
-  const showShuffle = pool.length > 0 && !hideControls && !(selectedId && isDesktop !== true);
+  const showShuffle = pool.length > 0 && !hideControls && !selectedId;
 
   const controlStyle = {
     backgroundColor: "var(--theme-surface)",
@@ -280,7 +280,7 @@ export function GalleryCanvas({
                 {photoUrl ? (
                   <div className="gallery-frame__photo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoUrl} alt="" />
+                    <img src={photoUrl} alt={`${memory.title}, ${formatShortDate(memory.date)}`} loading="lazy" />
                   </div>
                 ) : (
                   <div className="gallery-frame__plaque">
@@ -313,7 +313,7 @@ export function GalleryCanvas({
             <button
               type="button"
               onClick={shuffle}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
               aria-label="Shuffle photos"
               title="Shuffle"
             >

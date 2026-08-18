@@ -48,11 +48,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${playfair.variable} ${sourceSerif.variable} ${sourceSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <ThemeProvider>
           <CurrentPartnerProvider>
             <ShowHiddenPhotosProvider>
               <AuthProvider>
-                <AuthGate>{children}</AuthGate>
+                <AuthGate>
+                  <div id="main-content" className="flex min-h-full flex-1 flex-col">
+                    {children}
+                  </div>
+                </AuthGate>
               </AuthProvider>
             </ShowHiddenPhotosProvider>
           </CurrentPartnerProvider>

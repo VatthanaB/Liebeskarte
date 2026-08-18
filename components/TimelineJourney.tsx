@@ -102,7 +102,15 @@ export function TimelineJourney({
     fontFamily: "var(--font-label)",
   } as const;
 
-  let globalIndex = 0;
+  const yearStartIndex = useMemo(() => {
+    const map = new Map<number, number>();
+    let offset = 0;
+    for (const group of yearGroups) {
+      map.set(group.year, offset);
+      offset += group.memories.length;
+    }
+    return map;
+  }, [yearGroups]);
 
   return (
     <div className="relative">
@@ -118,16 +126,17 @@ export function TimelineJourney({
       </div>
 
       {/* Year rail, desktop only */}
-      <aside
-        className="timeline-year-rail pointer-events-none fixed top-1/2 right-4 z-10 hidden -translate-y-1/2 flex-col gap-2 md:flex lg:right-8"
-        aria-hidden="true"
+      <nav
+        className="timeline-year-rail fixed top-1/2 right-4 z-10 hidden -translate-y-1/2 flex-col gap-2 md:flex lg:right-8"
+        aria-label="Jump to year"
       >
         {years.map((year) => (
           <button
             key={year}
             type="button"
             onClick={() => scrollToYear(year)}
-            className="timeline-year-rail__dot pointer-events-auto text-xs font-medium transition-all"
+            aria-current={activeYear === year ? "true" : undefined}
+            className="timeline-year-rail__dot flex min-h-11 min-w-11 items-center justify-center text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2"
             style={{
               color: activeYear === year ? "var(--theme-accent)" : "var(--theme-ink-muted)",
               fontFamily: "var(--font-label)",
@@ -138,7 +147,7 @@ export function TimelineJourney({
             {year}
           </button>
         ))}
-      </aside>
+      </nav>
 
       <div ref={containerRef} className="timeline-journey relative mx-auto max-w-5xl px-4 md:px-8">
         {/* Center spine */}
@@ -167,9 +176,9 @@ export function TimelineJourney({
             </h2>
 
             <div className="relative space-y-12 md:space-y-16">
-              {yearMemories.map((memory) => {
-                const side = globalIndex % 2 === 0 ? "left" : "right";
-                globalIndex += 1;
+              {yearMemories.map((memory, memoryIndex) => {
+                const globalIdx = (yearStartIndex.get(year) ?? 0) + memoryIndex;
+                const side = globalIdx % 2 === 0 ? "left" : "right";
                 const isBeginning = memory.id === oldestMemoryId;
 
                 return (

@@ -85,6 +85,7 @@ export function TimelineCard({
                   <img
                     src={photoUrls[0]}
                     alt={memory.title}
+                    loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="photo-tape photo-tape--tl" />
@@ -95,9 +96,10 @@ export function TimelineCard({
                     {photoUrls.slice(1, 4).map((url, i) => (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        key={i}
+                        key={url}
                         src={url}
-                        alt=""
+                        alt={`${memory.title}, photo ${i + 2}`}
+                        loading="lazy"
                         className="h-14 w-14 shrink-0 rounded-md object-cover"
                       />
                     ))}
@@ -198,7 +200,8 @@ export function TimelineCard({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={url}
-                        alt=""
+                        alt={`${memory.title}, photo ${i + 1}`}
+                        loading="lazy"
                         className="aspect-square w-full object-cover transition-transform hover:scale-105"
                       />
                     </button>

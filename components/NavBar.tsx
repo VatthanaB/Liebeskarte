@@ -91,7 +91,7 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
       <nav className="pointer-events-auto absolute top-0 left-0 right-0 z-[1000] flex items-start justify-between gap-3 px-4 py-3 pt-[max(2rem,env(safe-area-inset-top))] md:px-6">
         <Link
           href="/"
-          className="hidden min-h-8 shrink-0 items-center text-sm tracking-wide sm:flex"
+          className="hidden min-h-11 shrink-0 items-center text-sm tracking-wide sm:flex"
           style={{ color: "var(--theme-ink)", fontFamily: "var(--font-label)" }}
         >
           Liebeskarte
@@ -107,7 +107,7 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               aria-controls="nav-menu"
-              className="inline-flex h-8 items-center gap-1 rounded-full px-2.5 text-[11px] font-medium"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2.5 text-[11px] font-medium focus-visible:outline-none focus-visible:ring-2"
               style={{ color: "var(--theme-ink)" }}
               onClick={() => setMenuOpen((open) => !open)}
             >
@@ -185,7 +185,7 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
                   key={link.href}
                   href={link.href}
                   aria-current={active ? "page" : undefined}
-                  className={`inline-flex h-8 items-center justify-center rounded-full px-2 text-[11px] font-medium transition-colors ${
+                  className={`inline-flex min-h-11 items-center justify-center rounded-full px-3 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 ${
                     active
                       ? ""
                       : "hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
@@ -202,7 +202,7 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
             {AUTH_ENABLED && user && (
               <button
                 onClick={() => signOutAuth()}
-                className="inline-flex h-8 items-center justify-center rounded-full px-2 text-[11px] font-medium transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full px-3 text-[11px] font-medium transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
                 style={{ color: "var(--theme-ink-muted)" }}
               >
                 Sign out
@@ -220,7 +220,7 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
             <button
               type="button"
               onClick={onAddMemory}
-              className="inline-flex h-8 min-w-8 items-center justify-center rounded-full text-base leading-none transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-lg leading-none transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
               style={{ color: "var(--theme-ink)" }}
               aria-label="Add memory"
             >

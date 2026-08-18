@@ -41,6 +41,7 @@ export function ShowHiddenPhotosSetting() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1">
           <h2
+            id="show-hidden-heading"
             className="text-lg font-semibold"
             style={{ fontFamily: "var(--font-display)" }}
           >
@@ -56,8 +57,9 @@ export function ShowHiddenPhotosSetting() {
             </p>
           )}
         </div>
-        <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-3 self-start sm:self-center">
+        <div className="flex min-h-11 shrink-0 items-center gap-3 self-start sm:self-center">
           <span
+            id="show-hidden-status"
             className="text-sm font-medium"
             style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
           >
@@ -67,8 +69,9 @@ export function ShowHiddenPhotosSetting() {
             type="button"
             role="switch"
             aria-checked={showHiddenPhotos}
+            aria-labelledby="show-hidden-heading show-hidden-status"
             onClick={() => setShowHiddenPhotos(!showHiddenPhotos)}
-            className="relative h-11 w-[3.25rem] shrink-0 rounded-full transition-colors"
+            className="relative h-11 w-[3.25rem] shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2"
             style={{
               backgroundColor: showHiddenPhotos
                 ? "var(--theme-accent)"
@@ -82,7 +85,7 @@ export function ShowHiddenPhotosSetting() {
               }}
             />
           </button>
-        </label>
+        </div>
       </div>
     </section>
   );

@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { NavBar } from "@/components/NavBar";
 import { AlbumGrid } from "@/components/AlbumGrid";
+import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { sharedMemories } from "@/lib/memory-visibility";
 import { flattenPhotos } from "@/lib/photos";
 import { LoveLoading } from "@/components/LoveLoading";
 
 export default function AlbumPage() {
-  const { memories, loading, photoUrlMap } = useMemories();
+  const { memories, loading, error, photoUrlMap, reload } = useMemories();
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
   const sharedOnly = useMemo(() => sharedMemories(memories), [memories]);
   const photoCount = flattenPhotos(sharedOnly, photoUrlMap).length;
 
@@ -28,6 +30,14 @@ export default function AlbumPage() {
             Every captured moment, tap a photo to relive the memory.
           </p>
         </div>
+
+        {error && error !== dismissedError && (
+          <DataErrorBanner
+            message={error}
+            onRetry={reload}
+            onDismiss={() => setDismissedError(error)}
+          />
+        )}
 
         {loading ? (
           <LoveLoading />

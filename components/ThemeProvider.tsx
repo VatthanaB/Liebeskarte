@@ -6,11 +6,8 @@ import { ErrorBoundary } from "./ErrorBoundary";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const style = themeToCssVars(THEME);
-  console.log("[atlas:theme] ThemeProvider render", THEME.name);
 
   useEffect(() => {
-    console.log("[atlas:theme] ThemeProvider mounted");
-
     const onError = (event: ErrorEvent) => {
       console.error("[atlas:window-error]", event.message, event.error);
     };

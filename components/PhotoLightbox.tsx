@@ -4,6 +4,7 @@ import { useCallback, useEffect } from "react";
 import Link from "next/link";
 import type { Memory } from "@/lib/types";
 import { formatShortDate } from "@/lib/photos";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 export interface LightboxPhoto {
   url: string;
@@ -26,6 +27,7 @@ export function PhotoLightbox({
   const current = photos[currentIndex];
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < photos.length - 1;
+  const dialogRef = useFocusTrap<HTMLDivElement>(true, onClose);
 
   const goPrev = useCallback(() => {
     if (hasPrev) onNavigate(currentIndex - 1);
@@ -34,16 +36,6 @@ export function PhotoLightbox({
   const goNext = useCallback(() => {
     if (hasNext) onNavigate(currentIndex + 1);
   }, [currentIndex, hasNext, onNavigate]);
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") goPrev();
-      if (e.key === "ArrowRight") goNext();
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, goPrev, goNext]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -55,9 +47,12 @@ export function PhotoLightbox({
   if (!current) return null;
 
   const { memory, url } = current;
+  const chromeTop = "max(1.5rem, env(safe-area-inset-top))";
+  const chromeSide = "max(1rem, env(safe-area-inset-left))";
 
   return (
     <div
+      ref={dialogRef}
       className="photo-lightbox fixed inset-0 z-[2000] flex items-center justify-center"
       role="dialog"
       aria-modal="true"
@@ -67,8 +62,10 @@ export function PhotoLightbox({
       <div className="photo-lightbox__backdrop absolute inset-0 bg-black/75" />
 
       <button
+        type="button"
         onClick={onClose}
-        className="absolute top-6 right-6 z-10 rounded-full p-2 text-2xl leading-none text-white/80 hover:text-white"
+        className="absolute z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full text-2xl leading-none text-white/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+        style={{ top: chromeTop, right: "max(1.5rem, env(safe-area-inset-right))" }}
         aria-label="Close"
       >
         ×
@@ -76,11 +73,13 @@ export function PhotoLightbox({
 
       {hasPrev && (
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             goPrev();
           }}
-          className="photo-lightbox__nav absolute left-4 z-10 rounded-full px-3 py-2 text-white/80 hover:text-white md:left-8"
+          className="photo-lightbox__nav absolute z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full text-2xl text-white/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:left-8"
+          style={{ top: "50%", transform: "translateY(-50%)", left: chromeSide }}
           aria-label="Previous photo"
         >
           ‹
@@ -89,11 +88,17 @@ export function PhotoLightbox({
 
       {hasNext && (
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             goNext();
           }}
-          className="photo-lightbox__nav absolute right-4 z-10 rounded-full px-3 py-2 text-white/80 hover:text-white md:right-8"
+          className="photo-lightbox__nav absolute z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full text-2xl text-white/80 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 md:right-8"
+          style={{
+            top: "50%",
+            transform: "translateY(-50%)",
+            right: "max(1rem, env(safe-area-inset-right))",
+          }}
           aria-label="Next photo"
         >
           ›
@@ -101,13 +106,13 @@ export function PhotoLightbox({
       )}
 
       <div
-        className="photo-lightbox__content relative z-10 mx-4 flex max-h-[90vh] max-w-4xl flex-col"
+        className="photo-lightbox__content relative z-10 mx-4 flex max-h-[90vh] max-w-4xl flex-col pb-[env(safe-area-inset-bottom)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={url}
-          alt={memory.title}
+          alt={`${memory.title}, ${formatShortDate(memory.date)}`}
           className="max-h-[70vh] w-full rounded-lg object-contain shadow-2xl"
         />
 
@@ -139,14 +144,14 @@ export function PhotoLightbox({
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
               href={`/?memory=${memory.id}`}
-              className="rounded-full px-3 py-1.5 text-xs font-medium text-white"
+              className="inline-flex min-h-11 items-center rounded-full px-4 py-2 text-xs font-medium text-white"
               style={{ backgroundColor: "var(--theme-accent)" }}
             >
               View on map
             </Link>
             <Link
               href="/timeline"
-              className="rounded-full border px-3 py-1.5 text-xs font-medium"
+              className="inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-xs font-medium"
               style={{
                 borderColor: "var(--theme-border)",
                 color: "var(--theme-ink-muted)",

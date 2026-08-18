@@ -9,8 +9,10 @@ import { canChangeMemoryVisibility } from "@/lib/memory-visibility";
 import { searchPlaces, type GeocodeResult } from "@/lib/geocode";
 import { saveMemory, savePhoto, getPhotosForMemory, deletePhoto, updatePhotoHidden } from "@/lib/db";
 import { looksLikeHeic, preparePhotoFile } from "@/lib/photo-file";
+import { validatePhotoFile } from "@/lib/photo-limits";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
 import { useTheme } from "./ThemeProvider";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 interface AddMemoryFormProps {
   initial?: Partial<Memory> & { lat: number; lng: number };
@@ -52,6 +54,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
   const [searching, setSearching] = useState(false);
   const [convertingPhotos, setConvertingPhotos] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [isPersonal, setIsPersonal] = useState(initial?.visibility === "personal");
   const isEditing = Boolean(initial?.id);
@@ -116,6 +119,13 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
     setPhotoError(null);
     setConvertingPhotos(files.some(looksLikeHeic));
     try {
+      for (const file of files) {
+        const validationError = validatePhotoFile(file);
+        if (validationError) {
+          setPhotoError(validationError);
+          return;
+        }
+      }
       const prepared = await Promise.all(files.map(preparePhotoFile));
       setPhotoFiles((prev) => [...prev, ...prepared]);
       setNewPhotoHidden((prev) => [...prev, ...prepared.map(() => false)]);
@@ -132,6 +142,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
     if (!title.trim()) return;
 
     setSaving(true);
+    setSaveError(null);
     try {
       const now = new Date().toISOString();
       const photoIds = [...existingPhotoIds];
@@ -179,6 +190,13 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         await saveMemory({ ...memory, photoIds });
       }
       onSave(memory);
+    } catch (err) {
+      console.error("[atlas] save memory failed", err);
+      setSaveError(
+        err instanceof Error && err.message.trim()
+          ? err.message
+          : "Couldn't save — check your connection and try again."
+      );
     } finally {
       setSaving(false);
     }
@@ -217,9 +235,15 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
     fontFamily: "var(--font-body)",
   };
 
+  const dialogRef = useFocusTrap<HTMLFormElement>(true, onCancel);
+
   return (
     <form
+      ref={dialogRef}
       onSubmit={handleSubmit}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="memory-form-title"
       className={`flex max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem))] flex-col overflow-hidden rounded-xl ${theme.cardClass}`}
       style={{ backgroundColor: "var(--theme-surface)" }}
     >
@@ -227,6 +251,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         style={{ borderColor: "var(--theme-border)" }}
       >
         <h2
+          id="memory-form-title"
           className="text-lg font-semibold"
           style={{ fontFamily: "var(--font-display)" }}
         >
@@ -235,7 +260,8 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         <button
           type="button"
           onClick={onCancel}
-          className="text-xl opacity-60 hover:opacity-100"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full text-xl opacity-60 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent)]"
+          aria-label="Close"
         >
           ×
         </button>
@@ -478,11 +504,11 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
             {existingPhotos.map((photo) => (
               <div key={photo.id} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.url} alt="" className="h-16 w-16 rounded-lg object-cover" />
+                <img src={photo.url} alt="" loading="lazy" className="h-16 w-16 rounded-lg object-cover" />
                 <button
                   type="button"
                   onClick={() => removeExistingPhoto(photo.id)}
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                  className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
                   aria-label="Delete photo"
                 >
                   ×
@@ -514,7 +540,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
                 <button
                   type="button"
                   onClick={() => removeNewPhoto(index)}
-                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                  className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
                   aria-label="Remove photo"
                 >
                   ×
@@ -565,6 +591,12 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
           )}
         </div>
       </div>
+
+      {saveError && (
+        <p className="border-t px-5 py-3 text-sm text-red-600" style={{ borderColor: "var(--theme-border)" }}>
+          {saveError}
+        </p>
+      )}
 
       <div className="flex items-center gap-3 border-t px-5 py-4"
         style={{ borderColor: "var(--theme-border)" }}
