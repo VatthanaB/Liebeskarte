@@ -44,7 +44,9 @@ export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
   },
 };
 
-export const DEFAULT_MAP_LAYER: MapLayerId = "watercolor";
+export const DEFAULT_MAP_LAYER: MapLayerId = "voyager";
+
+export const MAP_LAYER_ORDER: MapLayerId[] = ["voyager", "watercolor", "terrain"];
 export const MAP_LAYER_STORAGE_KEY = "our-atlas-map-layer";
 
 export function getStoredMapLayer(): MapLayerId {

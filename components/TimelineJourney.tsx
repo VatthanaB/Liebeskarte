@@ -9,12 +9,14 @@ interface TimelineJourneyProps {
   memories: Memory[];
   photoUrlMap: Record<string, string[]>;
   onViewOnMap: (memory: Memory) => void;
+  onEdit: (memory: Memory) => void;
 }
 
 export function TimelineJourney({
   memories,
   photoUrlMap,
   onViewOnMap,
+  onEdit,
 }: TimelineJourneyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -52,25 +54,10 @@ export function TimelineJourney({
       }
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("timeline-reveal--visible");
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
-    );
-
-    const cards = containerRef.current?.querySelectorAll(".timeline-reveal");
-    cards?.forEach((card) => observer.observe(card));
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
-      observer.disconnect();
       window.removeEventListener("scroll", handleScroll);
     };
   }, [memories]);
@@ -165,6 +152,7 @@ export function TimelineJourney({
                       photoUrls={photoUrlMap[memory.id]}
                       side={side}
                       onViewOnMap={onViewOnMap}
+                      onEdit={onEdit}
                     />
                   </div>
                 );

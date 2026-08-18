@@ -14,6 +14,12 @@ create table if not exists public.memories (
   address text not null default '',
   type text not null default 'custom',
   journal text not null default '',
+  journal_panda text not null default '',
+  journal_henne text not null default '',
+  journal_panda_shared boolean not null default false,
+  journal_henne_shared boolean not null default false,
+  visibility text not null default 'shared',
+  owner text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   created_by uuid references auth.users (id)
@@ -24,6 +30,7 @@ create table if not exists public.photos (
   memory_id uuid not null references public.memories (id) on delete cascade,
   path text not null,
   name text not null default '',
+  hidden boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -138,4 +145,44 @@ on conflict (email) do nothing;
 -- Additive: keep name and street address as separate fields.
 alter table public.memories
   add column if not exists address text not null default '';
+
+-- Dual journals: one entry per partner (Panda / Henne).
+alter table public.memories
+  add column if not exists journal_panda text not null default '',
+  add column if not exists journal_henne text not null default '',
+  add column if not exists journal_panda_shared boolean not null default false,
+  add column if not exists journal_henne_shared boolean not null default false;
+
+-- Migrate legacy single journal into Panda's shared entry.
+update public.memories
+set
+  journal_panda = journal,
+  journal_panda_shared = true
+where journal <> '' and journal_panda = '';
+
+-- Per-photo privacy: hidden photos only appear in Settings.
+alter table public.photos
+  add column if not exists hidden boolean not null default false;
+
+-- Personal vs shared memories.
+alter table public.memories
+  add column if not exists visibility text not null default 'shared',
+  add column if not exists owner text;
+
+alter table public.memories
+  drop constraint if exists memories_visibility_check;
+
+alter table public.memories
+  add constraint memories_visibility_check
+  check (visibility in ('shared', 'personal'));
+
+alter table public.memories
+  drop constraint if exists memories_owner_check;
+
+alter table public.memories
+  add constraint memories_owner_check
+  check (owner is null or owner in ('panda', 'henne'));
+
+create index if not exists memories_visibility_idx on public.memories (visibility);
+create index if not exists memories_owner_idx on public.memories (owner);
 

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Memory } from "@/lib/types";
 import { MILESTONE_ICONS, MILESTONE_LABELS } from "@/lib/types";
 import { cardTilt, formatShortDate } from "@/lib/photos";
+import { useCurrentPartner } from "./CurrentPartnerProvider";
+import { JournalEntries } from "./JournalEntries";
 import { useTheme } from "./ThemeProvider";
 import { PhotoLightbox, type LightboxPhoto } from "./PhotoLightbox";
 
@@ -12,6 +14,7 @@ interface TimelineCardProps {
   photoUrls?: string[];
   side: "left" | "right";
   onViewOnMap: (memory: Memory) => void;
+  onEdit: (memory: Memory) => void;
 }
 
 export function TimelineCard({
@@ -19,10 +22,32 @@ export function TimelineCard({
   photoUrls = [],
   side,
   onViewOnMap,
+  onEdit,
 }: TimelineCardProps) {
   const { theme } = useTheme();
+  const { partner } = useCurrentPartner();
+  const cardRef = useRef<HTMLElement>(null);
   const [expanded, setExpanded] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const color = theme.markerColors[memory.type];
   const tilt = cardTilt(memory.id);
@@ -36,7 +61,8 @@ export function TimelineCard({
   return (
     <>
       <article
-        className={`timeline-card timeline-card--${side} timeline-reveal ${expanded ? "timeline-card--expanded" : ""}`}
+        ref={cardRef}
+        className={`timeline-card timeline-card--${side} timeline-reveal ${revealed ? "timeline-reveal--visible" : ""} ${expanded ? "timeline-card--expanded" : ""}`}
         data-memory-id={memory.id}
       >
         <button
@@ -149,14 +175,13 @@ export function TimelineCard({
                   </p>
                 )}
 
-              {memory.journal && (
-                <p
-                  className={`mt-2 text-sm leading-relaxed ${expanded ? "" : "line-clamp-2"}`}
-                  style={{ color: "var(--theme-ink-muted)" }}
-                >
-                  {memory.journal}
-                </p>
-              )}
+              <JournalEntries
+                memory={memory}
+                currentPartner={partner}
+                compact
+                lineClamp={!expanded}
+                className="mt-2"
+              />
 
               {expanded && hasPhotos && photoUrls.length > 1 && (
                 <div className="mt-4 grid grid-cols-3 gap-2">
@@ -181,37 +206,51 @@ export function TimelineCard({
                 </div>
               )}
 
-              {expanded && (
-                <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(memory);
+                  }}
+                  className="inline-flex min-h-11 items-center rounded-full px-4 text-xs font-medium text-white"
+                  style={{ backgroundColor: "var(--theme-accent)" }}
+                >
+                  Edit memory
+                </button>
+                {expanded && (
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onViewOnMap(memory);
                     }}
-                    className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
-                    style={{ backgroundColor: "var(--theme-accent)" }}
+                    className="inline-flex min-h-11 items-center rounded-full border px-4 text-xs font-medium"
+                    style={{
+                      borderColor: "var(--theme-border)",
+                      color: "var(--theme-ink-muted)",
+                    }}
                   >
                     View on map
                   </button>
-                  {hasPhotos && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLightboxIndex(0);
-                      }}
-                      className="rounded-full border px-4 py-1.5 text-xs font-medium"
-                      style={{
-                        borderColor: "var(--theme-border)",
-                        color: "var(--theme-ink-muted)",
-                      }}
-                    >
-                      View photos
-                    </button>
-                  )}
-                </div>
-              )}
+                )}
+                {expanded && hasPhotos && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLightboxIndex(0);
+                    }}
+                    className="inline-flex min-h-11 items-center rounded-full border px-4 text-xs font-medium"
+                    style={{
+                      borderColor: "var(--theme-border)",
+                      color: "var(--theme-ink-muted)",
+                    }}
+                  >
+                    View photos
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </button>

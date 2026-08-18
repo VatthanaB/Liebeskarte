@@ -12,8 +12,50 @@ export interface YearGroup {
   memories: Memory[];
 }
 
+export const MONTH_LABELS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
+export const MONTH_SHORT_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+] as const;
+
 export function getMemoryYear(memory: Memory): number {
   return new Date(memory.date).getFullYear();
+}
+
+/** Calendar month 1–12 from the memory date. */
+export function getMemoryMonth(memory: Memory): number {
+  return new Date(memory.date).getMonth() + 1;
+}
+
+export interface MonthGroup {
+  year: number;
+  month: number;
+  label: string;
+  photos: PhotoEntry[];
 }
 
 export function groupMemoriesByYear(memories: Memory[]): YearGroup[] {
@@ -51,12 +93,55 @@ export function getUniqueYears(memories: Memory[]): number[] {
   return [...new Set(memories.map(getMemoryYear))].sort((a, b) => a - b);
 }
 
+export function getUniqueMonths(
+  memories: Memory[],
+  year: number | null = null,
+): number[] {
+  const scoped =
+    year === null ? memories : memories.filter((memory) => getMemoryYear(memory) === year);
+  return [...new Set(scoped.map(getMemoryMonth))].sort((a, b) => a - b);
+}
+
 export function filterPhotosByYear(
   entries: PhotoEntry[],
   year: number | null,
 ): PhotoEntry[] {
   if (year === null) return entries;
   return entries.filter((entry) => getMemoryYear(entry.memory) === year);
+}
+
+export function filterPhotosByMonth(
+  entries: PhotoEntry[],
+  month: number | null,
+): PhotoEntry[] {
+  if (month === null) return entries;
+  return entries.filter((entry) => getMemoryMonth(entry.memory) === month);
+}
+
+export function groupPhotosByMonth(entries: PhotoEntry[]): MonthGroup[] {
+  const groups = new Map<string, MonthGroup>();
+
+  for (const entry of entries) {
+    const year = getMemoryYear(entry.memory);
+    const month = getMemoryMonth(entry.memory);
+    const key = `${year}-${month}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.photos.push(entry);
+    } else {
+      groups.set(key, {
+        year,
+        month,
+        label: `${MONTH_LABELS[month - 1]} ${year}`,
+        photos: [entry],
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return b.month - a.month;
+  });
 }
 
 export function filterPhotosByType(

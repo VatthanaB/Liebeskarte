@@ -1,23 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { MapCanvas } from "@/components/MapCanvas";
-import { GlobeCanvas } from "@/components/GlobeCanvas";
+import { GalleryCanvas } from "@/components/GalleryCanvas";
 import { MemoryCard } from "@/components/MemoryCard";
+import { MemoryStack } from "@/components/MemoryStack";
 import { AddMemoryForm } from "@/components/AddMemoryForm";
 import { NavBar } from "@/components/NavBar";
 import { useMemories } from "@/lib/useMemories";
 import { deleteMemory } from "@/lib/db";
+import { findLocationGroup } from "@/lib/location-groups";
+import { sharedMemories } from "@/lib/memory-visibility";
 import type { Memory } from "@/lib/types";
 
-type ViewMode = "map" | "globe";
+type ViewMode = "map" | "gallery";
 
 export default function MapPageClient() {
   console.log("[atlas:page] MapPageClient render start");
   const searchParams = useSearchParams();
+  const viewParam = searchParams.get("view");
   const viewMode: ViewMode =
-    searchParams.get("view") === "globe" ? "globe" : "map";
+    viewParam === "gallery" || viewParam === "globe" ? "gallery" : "map";
   const { memories, loading, photoUrlMap, reload } = useMemories();
   console.log("[atlas:page] memories", {
     loading,
@@ -42,6 +46,13 @@ export default function MapPageClient() {
       }
     }
   }, [searchParams, memories]);
+
+  const galleryMemories = useMemo(() => sharedMemories(memories), [memories]);
+
+  const selectedGroup = useMemo(
+    () => (selectedMemory ? findLocationGroup(memories, selectedMemory) : []),
+    [memories, selectedMemory]
+  );
 
   const handleSelectMemory = useCallback((memory: Memory) => {
     setSelectedMemory(memory);
@@ -84,10 +95,15 @@ export default function MapPageClient() {
   const handleDelete = useCallback(async () => {
     if (!selectedMemory) return;
     if (!confirm("Delete this memory? This cannot be undone.")) return;
+    const remaining = selectedGroup.filter(
+      (memory) => memory.id !== selectedMemory.id
+    );
     await deleteMemory(selectedMemory.id);
-    setSelectedMemory(null);
+    setShowForm(false);
+    setFormInitial(undefined);
+    setSelectedMemory(remaining[remaining.length - 1] ?? null);
     reload();
-  }, [selectedMemory, reload]);
+  }, [selectedMemory, selectedGroup, reload]);
 
   const panelOpen = showForm || !!selectedMemory;
 
@@ -106,18 +122,22 @@ export default function MapPageClient() {
         </div>
       ) : (
         <div className="map-view-fade absolute inset-0 z-0">
-          <GlobeCanvas
-            memories={memories}
+          <GalleryCanvas
+            memories={galleryMemories}
+            photoUrlMap={photoUrlMap}
             selectedId={selectedMemory?.id}
             onSelectMemory={handleSelectMemory}
-            onMapClick={handleMapClick}
             flyToId={flyToId}
+            controlsOffset={panelOpen ? 280 : 0}
           />
         </div>
       )}
 
       <div className="pointer-events-none absolute inset-0 z-[1000]">
-        <NavBar viewMode={viewMode} />
+        <NavBar
+          viewMode={viewMode}
+          onAddMemory={panelOpen ? undefined : handleAddNew}
+        />
       </div>
 
       {loading && (
@@ -126,21 +146,8 @@ export default function MapPageClient() {
         </div>
       )}
 
-      {!showForm && !selectedMemory && (
-        <button
-          onClick={handleAddNew}
-          className="absolute top-[max(6rem,calc(env(safe-area-inset-top)+4rem))] right-4 z-[1000] rounded-full px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 md:right-6"
-          style={{
-            backgroundColor: "var(--theme-accent)",
-            fontFamily: "var(--font-label)",
-          }}
-        >
-          + Add memory
-        </button>
-      )}
-
       {panelOpen && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1100] max-h-[70vh] overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
+        <div className="absolute bottom-0 left-0 right-0 z-[1100] max-h-[70vh] overflow-x-hidden overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
           {showForm && formInitial ? (
             <AddMemoryForm
               initial={formInitial}
@@ -149,22 +156,24 @@ export default function MapPageClient() {
                 setShowForm(false);
                 setFormInitial(undefined);
               }}
+              onDelete={formInitial.id ? handleDelete : undefined}
+            />
+          ) : selectedMemory && selectedGroup.length > 1 ? (
+            <MemoryStack
+              memories={selectedGroup}
+              selectedId={selectedMemory.id}
+              photoUrlMap={photoUrlMap}
+              onSelect={handleSelectMemory}
+              onClose={() => setSelectedMemory(null)}
+              onEdit={handleEdit}
             />
           ) : selectedMemory ? (
-            <div className="space-y-2">
-              <MemoryCard
-                memory={selectedMemory}
-                photoUrls={photoUrlMap[selectedMemory.id] ?? []}
-                onClose={() => setSelectedMemory(null)}
-                onEdit={handleEdit}
-              />
-              <button
-                onClick={handleDelete}
-                className="w-full rounded-lg py-2 text-sm text-red-500 hover:bg-red-50"
-              >
-                Delete memory
-              </button>
-            </div>
+            <MemoryCard
+              memory={selectedMemory}
+              photoUrls={photoUrlMap[selectedMemory.id] ?? []}
+              onClose={() => setSelectedMemory(null)}
+              onEdit={handleEdit}
+            />
           ) : null}
         </div>
       )}

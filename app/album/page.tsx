@@ -1,13 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import { NavBar } from "@/components/NavBar";
 import { AlbumGrid } from "@/components/AlbumGrid";
 import { useMemories } from "@/lib/useMemories";
+import { sharedMemories } from "@/lib/memory-visibility";
 import { flattenPhotos } from "@/lib/photos";
 
 export default function AlbumPage() {
   const { memories, loading, photoUrlMap } = useMemories();
-  const photoCount = flattenPhotos(memories, photoUrlMap).length;
+  const sharedOnly = useMemo(() => sharedMemories(memories), [memories]);
+  const photoCount = flattenPhotos(sharedOnly, photoUrlMap).length;
 
   return (
     <div className="min-h-screen">
@@ -36,8 +39,8 @@ export default function AlbumPage() {
             className="mt-8 text-center text-xs uppercase tracking-wider"
             style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
           >
-            {photoCount} {photoCount === 1 ? "photo" : "photos"} across {memories.length}{" "}
-            {memories.length === 1 ? "memory" : "memories"}
+            {photoCount} {photoCount === 1 ? "photo" : "photos"} across {sharedOnly.length}{" "}
+            {sharedOnly.length === 1 ? "shared memory" : "shared memories"}
           </p>
         )}
       </main>

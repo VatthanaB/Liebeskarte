@@ -4,9 +4,14 @@ import { useCallback, useEffect, useState } from "react";
 import { getAllMemories, getPhotosForMemory } from "@/lib/db";
 import type { Memory } from "@/lib/types";
 import { AUTH_ENABLED, useAuth } from "@/lib/auth";
+import { useShowHiddenPhotos } from "@/components/ShowHiddenPhotosProvider";
+import { useCurrentPartner } from "@/components/CurrentPartnerProvider";
+import { visibleToPartner } from "@/lib/memory-visibility";
 
 export function useMemories() {
   const { user } = useAuth();
+  const { partner } = useCurrentPartner();
+  const { showHiddenPhotos } = useShowHiddenPhotos();
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [photoUrlMap, setPhotoUrlMap] = useState<Record<string, string[]>>({});
@@ -23,21 +28,25 @@ export function useMemories() {
     setLoading(true);
     try {
       const data = await getAllMemories();
-      setMemories(data);
+      const visible = data.filter((memory) => visibleToPartner(memory, partner));
+      setMemories(visible);
 
       const urlMap: Record<string, string[]> = {};
-      for (const memory of data) {
+      for (const memory of visible) {
         const photos = await getPhotosForMemory(memory.id);
-        urlMap[memory.id] = photos.map((photo) => photo.url).filter(Boolean);
+        urlMap[memory.id] = photos
+          .filter((photo) => showHiddenPhotos || !photo.hidden)
+          .map((photo) => photo.url)
+          .filter(Boolean);
       }
       setPhotoUrlMap(urlMap);
-      console.log("[atlas:db] loadMemories done", data.length);
+      console.log("[atlas:db] loadMemories done", visible.length);
     } catch (error) {
       console.error("[atlas:db] loadMemories failed", error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, showHiddenPhotos, partner]);
 
   useEffect(() => {
     loadMemories();

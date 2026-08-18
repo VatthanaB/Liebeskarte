@@ -1,6 +1,14 @@
 import { createClient } from "./supabase";
+import { emptyJournals } from "./journals";
 import { preparePhotoFile } from "./photo-file";
-import type { Memory, MilestoneType, Photo } from "./types";
+import type {
+  JournalEntry,
+  Memory,
+  MemoryVisibility,
+  MilestoneType,
+  PartnerId,
+  Photo,
+} from "./types";
 import { PHOTO_BUCKET } from "./types";
 
 interface MemoryRow {
@@ -12,7 +20,13 @@ interface MemoryRow {
   place_name: string;
   address: string;
   type: MilestoneType;
-  journal: string;
+  journal?: string;
+  journal_panda?: string;
+  journal_henne?: string;
+  journal_panda_shared?: boolean;
+  journal_henne_shared?: boolean;
+  visibility?: MemoryVisibility;
+  owner?: PartnerId | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,7 +36,42 @@ interface PhotoRow {
   memory_id: string;
   path: string;
   name: string;
+  hidden?: boolean;
   created_at: string;
+}
+
+async function mapPhotoRow(row: PhotoRow): Promise<Photo> {
+  return {
+    id: row.id,
+    memoryId: row.memory_id,
+    name: row.name,
+    path: row.path,
+    url: await signedUrl(row.path),
+    hidden: row.hidden ?? false,
+    createdAt: row.created_at,
+  };
+}
+
+function mapJournals(row: MemoryRow): Record<PartnerId, JournalEntry> {
+  const journals = emptyJournals();
+
+  if (row.journal_panda !== undefined || row.journal_henne !== undefined) {
+    journals.panda = {
+      text: row.journal_panda ?? "",
+      shared: row.journal_panda_shared ?? false,
+    };
+    journals.henne = {
+      text: row.journal_henne ?? "",
+      shared: row.journal_henne_shared ?? false,
+    };
+    return journals;
+  }
+
+  if (row.journal) {
+    journals.panda = { text: row.journal, shared: true };
+  }
+
+  return journals;
 }
 
 function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
@@ -35,8 +84,10 @@ function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
     placeName: row.place_name,
     address: row.address ?? "",
     type: row.type,
-    journal: row.journal,
+    journals: mapJournals(row),
     photoIds,
+    visibility: row.visibility ?? "shared",
+    owner: row.owner ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -96,7 +147,12 @@ export async function saveMemory(memory: Memory): Promise<void> {
     place_name: memory.placeName,
     address: memory.address ?? "",
     type: memory.type,
-    journal: memory.journal,
+    journal_panda: memory.journals.panda.text,
+    journal_henne: memory.journals.henne.text,
+    journal_panda_shared: memory.journals.panda.shared,
+    journal_henne_shared: memory.journals.henne.shared,
+    visibility: memory.visibility,
+    owner: memory.owner,
     created_at: memory.createdAt,
     updated_at: memory.updatedAt,
     created_by: user?.id ?? null,
@@ -126,22 +182,33 @@ export async function getPhotosForMemory(memoryId: string): Promise<Photo[]> {
   if (error) throw error;
 
   const rows = (data ?? []) as PhotoRow[];
-  return Promise.all(
-    rows.map(async (row) => ({
-      id: row.id,
-      memoryId: row.memory_id,
-      name: row.name,
-      path: row.path,
-      url: await signedUrl(row.path),
-      createdAt: row.created_at,
-    }))
-  );
+  return Promise.all(rows.map(mapPhotoRow));
+}
+
+export async function getAllPhotos(): Promise<Photo[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("photos")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as PhotoRow[];
+  return Promise.all(rows.map(mapPhotoRow));
+}
+
+export async function updatePhotoHidden(id: string, hidden: boolean): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("photos").update({ hidden }).eq("id", id);
+  if (error) throw error;
 }
 
 export async function savePhoto(input: {
   id: string;
   memoryId: string;
   file: File;
+  hidden?: boolean;
 }): Promise<Photo> {
   const supabase = createClient();
   const file = await preparePhotoFile(input.file);
@@ -161,6 +228,7 @@ export async function savePhoto(input: {
     memory_id: input.memoryId,
     path,
     name: file.name,
+    hidden: input.hidden ?? false,
   });
   if (rowError) throw rowError;
 
@@ -170,6 +238,7 @@ export async function savePhoto(input: {
     name: file.name,
     path,
     url: await signedUrl(path),
+    hidden: input.hidden ?? false,
     createdAt: new Date().toISOString(),
   };
 }

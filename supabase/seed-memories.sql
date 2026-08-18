@@ -2,7 +2,7 @@
 -- Safe to re-run: upserts on id.
 
 insert into public.memories (
-  id, title, date, lat, lng, place_name, address, type, journal, created_at, updated_at
+  id, title, date, lat, lng, place_name, address, type, journal_panda, journal_henne, journal_panda_shared, journal_henne_shared, created_at, updated_at
 ) values
   (
     '5ac968e8-1276-450d-a6c3-6d317eaa6920',
@@ -14,6 +14,9 @@ insert into public.memories (
     '134 Ponsonby Road, Grey Lynn, Auckland 1011, New Zealand',
     'met',
     'Wednesday night upstairs on Ponsonby Road. The first time we were in the same room — before we actually talked.',
+    '',
+    true,
+    false,
     '2026-03-18T10:00:00.000Z',
     '2026-03-18T10:00:00.000Z'
   ),
@@ -27,6 +30,9 @@ insert into public.memories (
     '394 New North Road, Kingsland, Auckland 1021, New Zealand',
     'date',
     'You weren''t supposed to be there — Victor was late. A girl asked for your Instagram, so you did the same with her. First time we actually talked. Then a random dinner invite you actually accepted.',
+    '',
+    true,
+    false,
     '2026-04-19T10:00:00.000Z',
     '2026-04-19T10:00:00.000Z'
   ),
@@ -40,6 +46,9 @@ insert into public.memories (
     '172 Dominion Road, Mount Eden, Auckland 1024, New Zealand',
     'date',
     'The invite after Saint Leonards — and you came. First dinner in the princess-room castle on Dominion Road.',
+    '',
+    true,
+    false,
     '2026-04-24T10:00:00.000Z',
     '2026-04-24T10:00:00.000Z'
   ),
@@ -53,6 +62,9 @@ insert into public.memories (
     '1 Franklin Road, Ponsonby, Auckland 1011, New Zealand',
     'date',
     'The night after first dinner at hers. Café by day, wine bar by night — Franklin Road, Ponsonby.',
+    '',
+    true,
+    false,
     '2026-04-25T10:00:00.000Z',
     '2026-04-25T10:00:00.000Z'
   ),
@@ -66,6 +78,9 @@ insert into public.memories (
     '183 Karangahape Road, Auckland 1010, New Zealand',
     'celebration',
     'SIR Relay at Double Whammy — shameless, intimate, respected. First proper night out as part of her world on K Road.',
+    '',
+    true,
+    false,
     '2026-05-01T10:00:00.000Z',
     '2026-05-01T10:00:00.000Z'
   ),
@@ -79,6 +94,9 @@ insert into public.memories (
     'Oneroa, Waiheke Island, Auckland, New Zealand',
     'trip',
     'Walking the track, bubbling and laughing on video. Writing in the imaginary gratitude journal. A blessed day — the island moments neither of us would have wanted to miss.',
+    '',
+    true,
+    false,
     '2026-05-16T10:00:00.000Z',
     '2026-05-16T10:00:00.000Z'
   ),
@@ -92,6 +110,9 @@ insert into public.memories (
     'Auckland, New Zealand',
     'custom',
     'First WhatsApp. Hello Stranger. All the small coincidences that led here — Saint Leonards, the dinner invite, the weeks of tiny benders, and the fact that none of it quite makes sense, which is what makes it beautiful.',
+    '',
+    true,
+    false,
     '2026-05-17T10:00:00.000Z',
     '2026-05-17T10:00:00.000Z'
   ),
@@ -105,6 +126,9 @@ insert into public.memories (
     '20 Augustus Terrace, Parnell, Auckland 1053, New Zealand',
     'custom',
     'After CLEAR you went to her office, met Rishabh, then slept in the princess room. It was a pleasure to have you in her castle — and to meet someone so important in her world.',
+    '',
+    true,
+    false,
     '2026-05-21T10:00:00.000Z',
     '2026-05-21T10:00:00.000Z'
   ),
@@ -118,6 +142,9 @@ insert into public.memories (
     '21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand',
     'celebration',
     'The Thursday you became her official French boyfriend. Also the day you first wrote: because I love you very much.',
+    '',
+    true,
+    false,
     '2026-06-04T10:00:00.000Z',
     '2026-06-04T10:00:00.000Z'
   ),
@@ -131,6 +158,9 @@ insert into public.memories (
     '21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand',
     'home',
     'How do I get in the French castle? Morning on bikes — completely the opposite, and love doing life with you.',
+    '',
+    true,
+    false,
     '2026-06-09T10:00:00.000Z',
     '2026-06-09T10:00:00.000Z'
   ),
@@ -144,6 +174,9 @@ insert into public.memories (
     '95-97 Customs Street West, Viaduct Harbour, Auckland 1010, New Zealand',
     'date',
     'Booked 8:15pm, then on to Sorry Mum with loved ones. A month-of-us dinner and a boogie — every Sorry Mum a reminder.',
+    '',
+    true,
+    false,
     '2026-06-13T10:00:00.000Z',
     '2026-06-13T10:00:00.000Z'
   ),
@@ -157,6 +190,9 @@ insert into public.memories (
     'Te Henga / Bethells Beach, Waitākere Ranges, Auckland, New Zealand',
     'trip',
     'Weekend away west. Picnic, recharge, no FOMO about silent studios. It was very special — we will always connect Bethells with that time.',
+    '',
+    true,
+    false,
     '2026-06-20T10:00:00.000Z',
     '2026-06-20T10:00:00.000Z'
   ),
@@ -170,6 +206,9 @@ insert into public.memories (
     '21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand',
     'date',
     'The chef cooked for her people — Antonia and Rishabh — in the French castle kitchen. Feeding the ones she loves.',
+    '',
+    true,
+    false,
     '2026-07-11T10:00:00.000Z',
     '2026-07-11T10:00:00.000Z'
   ),
@@ -183,6 +222,9 @@ insert into public.memories (
     'Vieux-Port, Marseille, France',
     'trip',
     'The first European morning next to each other. Marseille, the Vieux-Port, and picnics in the Calanques still ahead. We worked late nights for this.',
+    '',
+    true,
+    false,
     '2026-08-24T10:00:00.000Z',
     '2026-08-24T10:00:00.000Z'
   ),
@@ -196,6 +238,9 @@ insert into public.memories (
     'Avignon, Vaucluse, France',
     'trip',
     'Back to his hometown for the last days in France. She meets his aunty — two days in Avignon after the sea.',
+    '',
+    true,
+    false,
     '2026-08-28T10:00:00.000Z',
     '2026-08-28T10:00:00.000Z'
   ),
@@ -209,6 +254,9 @@ insert into public.memories (
     'Eastern Friesland, Lower Saxony, Germany',
     'trip',
     'He comes to her. Ostfriesland — mum, the e-bike, lüften, and the place that made her. Stoked to show him her upbringing.',
+    '',
+    true,
+    false,
     '2026-09-08T10:00:00.000Z',
     '2026-09-08T10:00:00.000Z'
   ),
@@ -222,6 +270,9 @@ insert into public.memories (
     'Eastern Friesland, Lower Saxony, Germany',
     'celebration',
     'Her birthday, at home in Germany, with him there. The present he was working on from the other side of the world finally gets to be given in person.',
+    '',
+    true,
+    false,
     '2026-09-09T10:00:00.000Z',
     '2026-09-09T10:00:00.000Z'
   )
@@ -233,5 +284,8 @@ on conflict (id) do update set
   place_name = excluded.place_name,
   address = excluded.address,
   type = excluded.type,
-  journal = excluded.journal,
+  journal_panda = excluded.journal_panda,
+  journal_henne = excluded.journal_henne,
+  journal_panda_shared = excluded.journal_panda_shared,
+  journal_henne_shared = excluded.journal_henne_shared,
   updated_at = excluded.updated_at;

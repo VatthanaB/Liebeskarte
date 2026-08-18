@@ -6,6 +6,22 @@ export type MilestoneType =
   | "celebration"
   | "custom";
 
+export type PartnerId = "panda" | "henne";
+
+export type MemoryVisibility = "shared" | "personal";
+
+export const PARTNER_IDS: PartnerId[] = ["panda", "henne"];
+
+export const PARTNERS: Record<PartnerId, { id: PartnerId; label: string }> = {
+  panda: { id: "panda", label: "Panda" },
+  henne: { id: "henne", label: "Henne" },
+};
+
+export interface JournalEntry {
+  text: string;
+  shared: boolean;
+}
+
 export interface Memory {
   id: string;
   title: string;
@@ -15,8 +31,10 @@ export interface Memory {
   placeName: string;
   address: string;
   type: MilestoneType;
-  journal: string;
+  journals: Record<PartnerId, JournalEntry>;
   photoIds: string[];
+  visibility: MemoryVisibility;
+  owner: PartnerId | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +45,7 @@ export interface Photo {
   name: string;
   path: string;
   url: string;
+  hidden: boolean;
   createdAt: string;
 }
 

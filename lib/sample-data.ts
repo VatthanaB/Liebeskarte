@@ -1,6 +1,7 @@
 import type { Memory } from "./types";
+import { pandaSharedJournal } from "./journals";
 
-export const SAMPLE_MEMORIES: Memory[] = [
+const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
   {
     id: "5ac968e8-1276-450d-a6c3-6d317eaa6920",
     title: "Where we met",
@@ -10,8 +11,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Goblin",
     address: "134 Ponsonby Road, Grey Lynn, Auckland 1011, New Zealand",
     type: "met",
-    journal:
-      "Wednesday night upstairs on Ponsonby Road. The first time we were in the same room — before we actually talked.",
+    journals: pandaSharedJournal(
+      "Wednesday night upstairs on Ponsonby Road. The first time we were in the same room — before we actually talked."
+    ),
     photoIds: [],
     createdAt: "2026-03-18T10:00:00.000Z",
     updatedAt: "2026-03-18T10:00:00.000Z",
@@ -25,8 +27,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Saint Leonards",
     address: "394 New North Road, Kingsland, Auckland 1021, New Zealand",
     type: "date",
-    journal:
-      "You weren't supposed to be there — Victor was late. A girl asked for your Instagram, so you did the same with her. First time we actually talked. Then a random dinner invite you actually accepted.",
+    journals: pandaSharedJournal(
+      "You weren't supposed to be there — Victor was late. A girl asked for your Instagram, so you did the same with her. First time we actually talked. Then a random dinner invite you actually accepted."
+    ),
     photoIds: [],
     createdAt: "2026-04-19T10:00:00.000Z",
     updatedAt: "2026-04-19T10:00:00.000Z",
@@ -40,8 +43,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "172 Dominion Road",
     address: "172 Dominion Road, Mount Eden, Auckland 1024, New Zealand",
     type: "date",
-    journal:
-      "The invite after Saint Leonards — and you came. First dinner in the princess-room castle on Dominion Road.",
+    journals: pandaSharedJournal(
+      "The invite after Saint Leonards — and you came. First dinner in the princess-room castle on Dominion Road."
+    ),
     photoIds: [],
     createdAt: "2026-04-24T10:00:00.000Z",
     updatedAt: "2026-04-24T10:00:00.000Z",
@@ -55,8 +59,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Blue",
     address: "1 Franklin Road, Ponsonby, Auckland 1011, New Zealand",
     type: "date",
-    journal:
-      "The night after first dinner at hers. Café by day, wine bar by night — Franklin Road, Ponsonby.",
+    journals: pandaSharedJournal(
+      "The night after first dinner at hers. Café by day, wine bar by night — Franklin Road, Ponsonby."
+    ),
     photoIds: [],
     createdAt: "2026-04-25T10:00:00.000Z",
     updatedAt: "2026-04-25T10:00:00.000Z",
@@ -70,8 +75,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "SIR at Double Whammy",
     address: "183 Karangahape Road, Auckland 1010, New Zealand",
     type: "celebration",
-    journal:
-      "SIR Relay at Double Whammy — shameless, intimate, respected. First proper night out as part of her world on K Road.",
+    journals: pandaSharedJournal(
+      "SIR Relay at Double Whammy — shameless, intimate, respected. First proper night out as part of her world on K Road."
+    ),
     photoIds: [],
     createdAt: "2026-05-01T10:00:00.000Z",
     updatedAt: "2026-05-01T10:00:00.000Z",
@@ -85,8 +91,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Waiheke",
     address: "Oneroa, Waiheke Island, Auckland, New Zealand",
     type: "trip",
-    journal:
-      "Walking the track, bubbling and laughing on video. Writing in the imaginary gratitude journal. A blessed day — the island moments neither of us would have wanted to miss.",
+    journals: pandaSharedJournal(
+      "Walking the track, bubbling and laughing on video. Writing in the imaginary gratitude journal. A blessed day — the island moments neither of us would have wanted to miss."
+    ),
     photoIds: [],
     createdAt: "2026-05-16T10:00:00.000Z",
     updatedAt: "2026-05-16T10:00:00.000Z",
@@ -100,8 +107,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Auckland",
     address: "Auckland, New Zealand",
     type: "custom",
-    journal:
-      "First WhatsApp. Hello Stranger. All the small coincidences that led here — Saint Leonards, the dinner invite, the weeks of tiny benders, and the fact that none of it quite makes sense, which is what makes it beautiful.",
+    journals: pandaSharedJournal(
+      "First WhatsApp. Hello Stranger. All the small coincidences that led here — Saint Leonards, the dinner invite, the weeks of tiny benders, and the fact that none of it quite makes sense, which is what makes it beautiful."
+    ),
     photoIds: [],
     createdAt: "2026-05-17T10:00:00.000Z",
     updatedAt: "2026-05-17T10:00:00.000Z",
@@ -115,8 +123,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "20 Augustus Terrace",
     address: "20 Augustus Terrace, Parnell, Auckland 1053, New Zealand",
     type: "custom",
-    journal:
-      "After CLEAR you went to her office, met Rishabh, then slept in the princess room. It was a pleasure to have you in her castle — and to meet someone so important in her world.",
+    journals: pandaSharedJournal(
+      "After CLEAR you went to her office, met Rishabh, then slept in the princess room. It was a pleasure to have you in her castle — and to meet someone so important in her world."
+    ),
     photoIds: [],
     createdAt: "2026-05-21T10:00:00.000Z",
     updatedAt: "2026-05-21T10:00:00.000Z",
@@ -130,8 +139,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Auckland",
     address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
     type: "celebration",
-    journal:
-      "The Thursday you became her official French boyfriend. Also the day you first wrote: because I love you very much.",
+    journals: pandaSharedJournal(
+      "The Thursday you became her official French boyfriend. Also the day you first wrote: because I love you very much."
+    ),
     photoIds: [],
     createdAt: "2026-06-04T10:00:00.000Z",
     updatedAt: "2026-06-04T10:00:00.000Z",
@@ -145,8 +155,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "21 Chamberlain Street",
     address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
     type: "home",
-    journal:
-      "How do I get in the French castle? Morning on bikes — completely the opposite, and love doing life with you.",
+    journals: pandaSharedJournal(
+      "How do I get in the French castle? Morning on bikes — completely the opposite, and love doing life with you."
+    ),
     photoIds: [],
     createdAt: "2026-06-09T10:00:00.000Z",
     updatedAt: "2026-06-09T10:00:00.000Z",
@@ -160,8 +171,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Hello Beasty",
     address: "95-97 Customs Street West, Viaduct Harbour, Auckland 1010, New Zealand",
     type: "date",
-    journal:
-      "Booked 8:15pm, then on to Sorry Mum with loved ones. A month-of-us dinner and a boogie — every Sorry Mum a reminder.",
+    journals: pandaSharedJournal(
+      "Booked 8:15pm, then on to Sorry Mum with loved ones. A month-of-us dinner and a boogie — every Sorry Mum a reminder."
+    ),
     photoIds: [],
     createdAt: "2026-06-13T10:00:00.000Z",
     updatedAt: "2026-06-13T10:00:00.000Z",
@@ -175,8 +187,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Bethells Beach",
     address: "Te Henga / Bethells Beach, Waitākere Ranges, Auckland, New Zealand",
     type: "trip",
-    journal:
-      "Weekend away west. Picnic, recharge, no FOMO about silent studios. It was very special — we will always connect Bethells with that time.",
+    journals: pandaSharedJournal(
+      "Weekend away west. Picnic, recharge, no FOMO about silent studios. It was very special — we will always connect Bethells with that time."
+    ),
     photoIds: [],
     createdAt: "2026-06-20T10:00:00.000Z",
     updatedAt: "2026-06-20T10:00:00.000Z",
@@ -190,8 +203,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "21 Chamberlain Street",
     address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
     type: "date",
-    journal:
-      "The chef cooked for her people — Antonia and Rishabh — in the French castle kitchen. Feeding the ones she loves.",
+    journals: pandaSharedJournal(
+      "The chef cooked for her people — Antonia and Rishabh — in the French castle kitchen. Feeding the ones she loves."
+    ),
     photoIds: [],
     createdAt: "2026-07-11T10:00:00.000Z",
     updatedAt: "2026-07-11T10:00:00.000Z",
@@ -205,8 +219,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Vieux-Port, Marseille",
     address: "Vieux-Port, Marseille, France",
     type: "trip",
-    journal:
-      "The first European morning next to each other. Marseille, the Vieux-Port, and picnics in the Calanques still ahead. We worked late nights for this.",
+    journals: pandaSharedJournal(
+      "The first European morning next to each other. Marseille, the Vieux-Port, and picnics in the Calanques still ahead. We worked late nights for this."
+    ),
     photoIds: [],
     createdAt: "2026-08-24T10:00:00.000Z",
     updatedAt: "2026-08-24T10:00:00.000Z",
@@ -220,8 +235,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Avignon",
     address: "Avignon, Vaucluse, France",
     type: "trip",
-    journal:
-      "Back to his hometown for the last days in France. She meets his aunty — two days in Avignon after the sea.",
+    journals: pandaSharedJournal(
+      "Back to his hometown for the last days in France. She meets his aunty — two days in Avignon after the sea."
+    ),
     photoIds: [],
     createdAt: "2026-08-28T10:00:00.000Z",
     updatedAt: "2026-08-28T10:00:00.000Z",
@@ -235,8 +251,9 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Ostfriesland",
     address: "Eastern Friesland, Lower Saxony, Germany",
     type: "trip",
-    journal:
-      "He comes to her. Ostfriesland — mum, the e-bike, lüften, and the place that made her. Stoked to show him her upbringing.",
+    journals: pandaSharedJournal(
+      "He comes to her. Ostfriesland — mum, the e-bike, lüften, and the place that made her. Stoked to show him her upbringing."
+    ),
     photoIds: [],
     createdAt: "2026-09-08T10:00:00.000Z",
     updatedAt: "2026-09-08T10:00:00.000Z",
@@ -250,13 +267,20 @@ export const SAMPLE_MEMORIES: Memory[] = [
     placeName: "Ostfriesland",
     address: "Eastern Friesland, Lower Saxony, Germany",
     type: "celebration",
-    journal:
-      "Her birthday, at home in Germany, with him there. The present he was working on from the other side of the world finally gets to be given in person.",
+    journals: pandaSharedJournal(
+      "Her birthday, at home in Germany, with him there. The present he was working on from the other side of the world finally gets to be given in person."
+    ),
     photoIds: [],
     createdAt: "2026-09-09T10:00:00.000Z",
     updatedAt: "2026-09-09T10:00:00.000Z",
   },
 ];
+
+export const SAMPLE_MEMORIES: Memory[] = RAW_SAMPLE_MEMORIES.map((memory) => ({
+  ...memory,
+  visibility: "shared",
+  owner: null,
+}));
 
 export const AUCKLAND_CENTER = { lat: -36.8485, lng: 174.7633, zoom: 11 };
 export const WORLD_VIEW = { lat: -20, lng: 160, zoom: 2 };

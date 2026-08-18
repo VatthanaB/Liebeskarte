@@ -5,6 +5,8 @@ import {
   Source_Sans_3,
 } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CurrentPartnerProvider } from "@/components/CurrentPartnerProvider";
+import { ShowHiddenPhotosProvider } from "@/components/ShowHiddenPhotosProvider";
 import { AuthProvider } from "@/lib/auth";
 import { AuthGate } from "@/components/AuthGate";
 import "./globals.css";
@@ -47,9 +49,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <AuthProvider>
-            <AuthGate>{children}</AuthGate>
-          </AuthProvider>
+          <CurrentPartnerProvider>
+            <ShowHiddenPhotosProvider>
+              <AuthProvider>
+                <AuthGate>{children}</AuthGate>
+              </AuthProvider>
+            </ShowHiddenPhotosProvider>
+          </CurrentPartnerProvider>
         </ThemeProvider>
       </body>
     </html>
