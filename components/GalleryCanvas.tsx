@@ -159,7 +159,6 @@ export function GalleryCanvas({
     [memories, photoUrlMap],
   );
   const [hanging, setHanging] = useState<HangingPiece[]>([]);
-  const [paused, setPaused] = useState(false);
   const [hintTimedOut, setHintTimedOut] = useState(false);
 
   useEffect(() => {
@@ -173,7 +172,7 @@ export function GalleryCanvas({
   }, [layoutReady, pool, slots.length, flyToId]);
 
   useEffect(() => {
-    if (!layoutReady || reduceMotion !== false || paused || selectedId || pool.length === 0) {
+    if (!layoutReady || reduceMotion !== false || selectedId || pool.length === 0) {
       return;
     }
 
@@ -198,7 +197,7 @@ export function GalleryCanvas({
     }, SWAP_MS);
 
     return () => window.clearInterval(timer);
-  }, [layoutReady, reduceMotion, paused, selectedId, pool]);
+  }, [layoutReady, reduceMotion, selectedId, pool]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setHintTimedOut(true), HINT_MS);
@@ -213,6 +212,12 @@ export function GalleryCanvas({
   const showHint = !hintTimedOut && reduceMotion !== true && pool.length > 0;
 
   const controlBottom = `max(calc(1.5rem + ${controlsOffset}px), calc(env(safe-area-inset-bottom) + ${controlsOffset}px))`;
+  const controlStyle = {
+    backgroundColor: "var(--theme-surface)",
+    borderColor: "var(--theme-border)",
+    color: "var(--theme-ink)",
+    fontFamily: "var(--font-label)",
+  } as const;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -302,37 +307,39 @@ export function GalleryCanvas({
 
       {pool.length > 0 && !hideControls && (
         <div
-          className="pointer-events-auto absolute left-4 z-[1000] flex flex-col gap-2 transition-[bottom] duration-300"
+          className="pointer-events-auto absolute left-4 z-[1000] transition-[bottom] duration-300"
           style={{ bottom: controlBottom }}
         >
-          <button
-            type="button"
-            onClick={shuffle}
-            className="min-h-11 rounded-lg px-3 py-2 text-xs font-medium shadow-md backdrop-blur-md"
-            style={{
-              backgroundColor: "var(--theme-surface)",
-              color: "var(--theme-ink)",
-              border: "1px solid var(--theme-border)",
-              fontFamily: "var(--font-label)",
-            }}
+          <div
+            className="flex items-center rounded-full border p-0.5 shadow-sm backdrop-blur-sm"
+            style={controlStyle}
           >
-            Shuffle
-          </button>
-          {reduceMotion !== true && (
             <button
               type="button"
-              onClick={() => setPaused((value) => !value)}
-              className="min-h-11 rounded-lg px-3 py-2 text-xs font-medium shadow-md backdrop-blur-md"
-              style={{
-                backgroundColor: "var(--theme-surface)",
-                color: "var(--theme-ink)",
-                border: "1px solid var(--theme-border)",
-                fontFamily: "var(--font-label)",
-              }}
+              onClick={shuffle}
+              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+              aria-label="Shuffle photos"
+              title="Shuffle"
             >
-              {paused ? "Wander" : "Pause"}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M16 3h5v5" />
+                <path d="m4 20 17-17" />
+                <path d="M21 16v5h-5" />
+                <path d="m15 15 6 6" />
+                <path d="M4 4 9 9" />
+              </svg>
             </button>
-          )}
+          </div>
         </div>
       )}
     </div>

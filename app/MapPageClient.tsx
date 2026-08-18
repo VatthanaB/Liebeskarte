@@ -139,7 +139,9 @@ export default function MapPageClient() {
       <div className="pointer-events-none absolute inset-0 z-[1000]">
         <NavBar
           viewMode={viewMode}
-          onAddMemory={panelOpen ? undefined : handleAddNew}
+          onAddMemory={
+            viewMode === "map" && !panelOpen ? handleAddNew : undefined
+          }
         />
       </div>
 
