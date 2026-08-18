@@ -1,6 +1,7 @@
 "use client";
 
 import { NavBar } from "@/components/NavBar";
+import { PartnerIndicator } from "@/components/PartnerIndicator";
 import { PhotoManager } from "@/components/PhotoManager";
 import { ShowHiddenPhotosSetting } from "@/components/ShowHiddenPhotosSetting";
 import { useMemories } from "@/lib/useMemories";
@@ -25,6 +26,8 @@ export default function SettingsPage() {
             after 1 hour).
           </p>
         </div>
+
+        <PartnerIndicator />
 
         <ShowHiddenPhotosSetting />
 

@@ -106,6 +106,7 @@ export default function MapPageClient() {
   }, [selectedMemory, selectedGroup, reload]);
 
   const panelOpen = showForm || !!selectedMemory;
+  const memoryPanelOpen = !!selectedMemory && !showForm;
 
   return (
     <div className="relative h-dvh w-full overflow-hidden">
@@ -117,7 +118,8 @@ export default function MapPageClient() {
             onSelectMemory={handleSelectMemory}
             onMapClick={handleMapClick}
             flyToId={flyToId}
-            controlsOffset={panelOpen ? 280 : 0}
+            controlsOffset={memoryPanelOpen ? 280 : 0}
+            hideControls={showForm}
           />
         </div>
       ) : (
@@ -128,7 +130,8 @@ export default function MapPageClient() {
             selectedId={selectedMemory?.id}
             onSelectMemory={handleSelectMemory}
             flyToId={flyToId}
-            controlsOffset={panelOpen ? 280 : 0}
+            controlsOffset={memoryPanelOpen ? 280 : 0}
+            hideControls={showForm}
           />
         </div>
       )}
@@ -146,9 +149,18 @@ export default function MapPageClient() {
         </div>
       )}
 
-      {panelOpen && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1100] max-h-[70vh] overflow-x-hidden overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
-          {showForm && formInitial ? (
+      {showForm && formInitial && (
+        <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            aria-label="Close editor"
+            onClick={() => {
+              setShowForm(false);
+              setFormInitial(undefined);
+            }}
+          />
+          <div className="relative z-10 w-full max-w-md pointer-events-auto">
             <AddMemoryForm
               initial={formInitial}
               onSave={handleSave}
@@ -158,23 +170,29 @@ export default function MapPageClient() {
               }}
               onDelete={formInitial.id ? handleDelete : undefined}
             />
-          ) : selectedMemory && selectedGroup.length > 1 ? (
+          </div>
+        </div>
+      )}
+
+      {memoryPanelOpen && (
+        <div className="absolute bottom-0 left-0 right-0 z-[1100] max-h-[70vh] overflow-x-hidden overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
+          {selectedGroup.length > 1 ? (
             <MemoryStack
               memories={selectedGroup}
-              selectedId={selectedMemory.id}
+              selectedId={selectedMemory!.id}
               photoUrlMap={photoUrlMap}
               onSelect={handleSelectMemory}
               onClose={() => setSelectedMemory(null)}
               onEdit={handleEdit}
             />
-          ) : selectedMemory ? (
+          ) : (
             <MemoryCard
-              memory={selectedMemory}
-              photoUrls={photoUrlMap[selectedMemory.id] ?? []}
+              memory={selectedMemory!}
+              photoUrls={photoUrlMap[selectedMemory!.id] ?? []}
               onClose={() => setSelectedMemory(null)}
               onEdit={handleEdit}
             />
-          ) : null}
+          )}
         </div>
       )}
     </div>

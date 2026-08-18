@@ -12,6 +12,7 @@ interface GalleryCanvasProps {
   onSelectMemory?: (memory: Memory) => void;
   flyToId?: string | null;
   controlsOffset?: number;
+  hideControls?: boolean;
 }
 
 interface GalleryEntry {
@@ -147,6 +148,7 @@ export function GalleryCanvas({
   onSelectMemory,
   flyToId,
   controlsOffset = 0,
+  hideControls = false,
 }: GalleryCanvasProps) {
   const isDesktop = useMediaFlag("(min-width: 768px)");
   const reduceMotion = useMediaFlag("(prefers-reduced-motion: reduce)");
@@ -298,7 +300,7 @@ export function GalleryCanvas({
         );
       })}
 
-      {pool.length > 0 && (
+      {pool.length > 0 && !hideControls && (
         <div
           className="pointer-events-auto absolute left-4 z-[1000] flex flex-col gap-2 transition-[bottom] duration-300"
           style={{ bottom: controlBottom }}

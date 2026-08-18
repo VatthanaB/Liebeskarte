@@ -99,6 +99,8 @@ interface MapCanvasProps {
   flyToId?: string | null;
   /** Extra bottom offset (px) for controls when a bottom sheet is open */
   controlsOffset?: number;
+  /** Hide layer/home/fit controls (e.g. while add-memory form is open) */
+  hideControls?: boolean;
 }
 
 export function MapCanvas({
@@ -108,6 +110,7 @@ export function MapCanvas({
   onMapClick,
   flyToId,
   controlsOffset = 0,
+  hideControls = false,
 }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -355,6 +358,7 @@ export function MapCanvas({
         ref={containerRef}
         className="map-container pointer-events-auto absolute inset-0"
       />
+      {!hideControls && (
       <div
         className="pointer-events-auto absolute left-4 z-[1000] transition-[bottom] duration-300"
         style={{
@@ -368,13 +372,13 @@ export function MapCanvas({
           <button
             type="button"
             onClick={cycleLayer}
-            className="flex h-11 min-w-11 items-center justify-center rounded-full px-2.5 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+            className="flex h-8 min-w-8 items-center justify-center rounded-full px-2 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
             aria-label={`Map style: ${MAP_LAYERS[layerId].name}. Tap to change.`}
             title={MAP_LAYERS[layerId].name}
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -389,20 +393,20 @@ export function MapCanvas({
             </svg>
           </button>
           <span
-            className="h-4 w-px shrink-0"
+            className="h-3 w-px shrink-0"
             style={{ backgroundColor: "var(--theme-border)" }}
             aria-hidden
           />
           <button
             type="button"
             onClick={goHome}
-            className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
             aria-label="Go to Auckland"
             title="Auckland"
           >
             <svg
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -417,20 +421,20 @@ export function MapCanvas({
           {memories.length > 0 && (
             <>
               <span
-                className="h-4 w-px shrink-0"
+                className="h-3 w-px shrink-0"
                 style={{ backgroundColor: "var(--theme-border)" }}
                 aria-hidden
               />
               <button
                 type="button"
                 onClick={fitAll}
-                className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
+                className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)]"
                 aria-label="Fit all memories"
                 title="Fit all"
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -449,6 +453,7 @@ export function MapCanvas({
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }
