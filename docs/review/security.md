@@ -6,12 +6,13 @@ Findings for Liebeskarte’s auth, RLS, partner gate, and session handling. **Se
 
 ## Current state
 
-- **Supabase Auth** is implemented in `lib/auth.tsx` and `components/AuthGate.tsx` but **disabled** via `AUTH_ENABLED = false`.
-- **Partner gate** is a separate client-only layer: password → `panda` or `henne`, stored in `localStorage` (`liebeskarte-partner`).
+**Implemented (auth-on cutover).** Remaining work is running `schema.sql` + `npm run seed:couple-users` against the live project if that has not been applied yet.
+
+- **Supabase Auth** is on (`AUTH_ENABLED = true`). The UI asks for username `panda` or `henne` plus a password. Supabase still only accepts email/phone/OAuth; the app maps those usernames to dummy emails (`panda@liebeskarte.app`, `henne@liebeskarte.app`) and calls `signInWithPassword`.
+- **Partner identity** comes from `profiles.partner` (fallback: dummy email local-part), not a client password or `localStorage`.
 - **All data access** is from the browser through `lib/db.ts` using the public publishable key. There are no API routes or server actions.
-- **RLS** is enabled on tables, but `supabase/schema.sql` includes **open anonymous policies** while auth is off.
-- **Privacy** (personal memories, unshared journals, hidden photos) is filtered in React (`lib/memory-visibility.ts`), not enforced in Postgres.
-- **Session refresh** helper exists in `proxy.ts` and `utils/supabase/middleware.ts`, but there is no root `middleware.ts` wired for Next.js to run it.
+- **RLS** is on. Open anon policies are dropped in `schema.sql`. Reads go through `memories_visible` (personal rows and unshared journal columns redacted).
+- **Session refresh** runs from `proxy.ts` (Next.js 16 renamed middleware → proxy; do not add `middleware.ts`).
 
 ---
 
@@ -39,7 +40,7 @@ Document the cutover in `docs/hosting.md` before deploying.
 
 ### HIGH — Partner passwords are not security
 
-**Files:** `lib/partner-auth.ts`, `components/CurrentPartnerProvider.tsx`, `components/PartnerGate.tsx`
+**Files:** `lib/partner-auth.ts`, `components/CurrentPartnerProvider.tsx`, `components/AuthGate.tsx`
 
 Partner passwords are hardcoded in source (`panda` → `panda`, `henne` → `henne`). They ship in the JavaScript bundle.
 
@@ -80,7 +81,7 @@ Authenticated couple policies only check `is_couple_member()`. Either allowliste
 
 **Files:** `supabase/schema.sql`, `lib/auth.tsx`
 
-`is_couple_member()` checks `couple_allowlist` by JWT email. `signUp()` does not verify the email is on the allowlist before creating an account.
+`is_couple_member()` checks `couple_allowlist` by JWT email. Public `signUp()` is removed from the app. A `before insert` trigger on `auth.users` rejects emails that are not on the allowlist.
 
 **Suggested fix:**
 
@@ -168,11 +169,11 @@ Migration scripts use additional names in `.env.migrate.example` (`NEW_DATABASE_
 
 ## Pre-deploy checklist
 
-- [ ] `AUTH_ENABLED = true`
-- [ ] Open anon policies dropped; anon grants revoked
-- [ ] Real emails in `couple_allowlist`
-- [ ] Public signup disabled or allowlist-enforced
-- [ ] Middleware wired for session refresh
-- [ ] Partner identity from auth, not client password
-- [ ] Personal memory / journal privacy in RLS
-- [ ] Hardcoded partner passwords removed or replaced
+- [x] `AUTH_ENABLED = true`
+- [x] Open anon policies dropped; anon grants revoked (in `schema.sql` — run it on the live project)
+- [x] Dummy couple emails in `couple_allowlist` (`panda@liebeskarte.app`, `henne@liebeskarte.app`)
+- [x] Public signup blocked by allowlist trigger; also disable Email signups in the dashboard
+- [x] Session refresh wired in `proxy.ts` (Next.js 16)
+- [x] Partner identity from auth profile / dummy email, not client password
+- [x] Personal memory / journal privacy in RLS + `memories_visible`
+- [x] Hardcoded partner passwords removed; username + password login

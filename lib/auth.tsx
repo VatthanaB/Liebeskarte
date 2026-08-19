@@ -10,17 +10,20 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { createClient, hasSupabaseConfig } from "@/lib/supabase";
+import {
+  emailFromUsername,
+  partnerFromUsername,
+} from "@/lib/partner-auth";
 
-/** Flip to true when you want the login gate. Files stay in place until then. */
-export const AUTH_ENABLED = false;
+/** Login is the auth boundary. Keep true in production. */
+export const AUTH_ENABLED = true;
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
   configured: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -59,15 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       loading,
       configured,
-      async signIn(email, password) {
+      async signIn(username, password) {
+        const partner = partnerFromUsername(username);
+        if (!partner) {
+          throw new Error("Use panda or henne as your username.");
+        }
         const { error } = await createClient().auth.signInWithPassword({
-          email,
+          email: emailFromUsername(partner),
           password,
         });
-        if (error) throw error;
-      },
-      async signUp(email, password) {
-        const { error } = await createClient().auth.signUp({ email, password });
         if (error) throw error;
       },
       async signOut() {

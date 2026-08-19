@@ -108,12 +108,7 @@ export function useMemories() {
       .channel("couple-sync")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "memories" },
-        scheduleReload
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "photos" },
+        { event: "*", schema: "public", table: "sync_events" },
         scheduleReload
       )
       .subscribe();

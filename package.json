@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "migrate:apply-schema": "node scripts/apply-schema.mjs",
-    "migrate:supabase-region": "node scripts/migrate-supabase-region.mjs"
+    "migrate:supabase-region": "node scripts/migrate-supabase-region.mjs",
+    "seed:couple-users": "node scripts/seed-couple-users.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -10,6 +10,7 @@ import { CurrentPartnerProvider } from "@/components/CurrentPartnerProvider";
 import { ShowHiddenPhotosProvider } from "@/components/ShowHiddenPhotosProvider";
 import { AuthProvider } from "@/lib/auth";
 import { AuthGate } from "@/components/AuthGate";
+import { OnboardingGate } from "@/components/OnboardingGate";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -54,17 +55,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <ThemeProvider>
           <ConfirmProvider>
-            <CurrentPartnerProvider>
-              <ShowHiddenPhotosProvider>
-                <AuthProvider>
-                  <AuthGate>
-                    <div id="main-content" className="flex min-h-full flex-1 flex-col">
-                      {children}
-                    </div>
-                  </AuthGate>
-                </AuthProvider>
-              </ShowHiddenPhotosProvider>
-            </CurrentPartnerProvider>
+            <AuthProvider>
+              <AuthGate>
+                <CurrentPartnerProvider>
+                  <ShowHiddenPhotosProvider>
+                    <OnboardingGate>
+                      <div id="main-content" className="flex min-h-full flex-1 flex-col">
+                        {children}
+                      </div>
+                    </OnboardingGate>
+                  </ShowHiddenPhotosProvider>
+                </CurrentPartnerProvider>
+              </AuthGate>
+            </AuthProvider>
           </ConfirmProvider>
         </ThemeProvider>
       </body>

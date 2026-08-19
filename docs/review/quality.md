@@ -146,7 +146,7 @@ When implementing features from other review docs, update:
 - [x] `docs/roadmap.md` — phase checkboxes and stack table
 - [x] `docs/concept.md` — storage and backup story
 - [x] `docs/design-system.md` — map library and theme count
-- [ ] `docs/hosting.md` — auth-on checklist (align with `review/security.md`)
+- [x] `docs/hosting.md` — auth-on checklist (align with `review/security.md`)
 
 ---
 

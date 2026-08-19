@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MapCanvas } from "@/components/MapCanvas";
 import { GalleryCanvas } from "@/components/GalleryCanvas";
@@ -252,13 +253,23 @@ export default function MapPageClient() {
             <p className="mt-2 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
               Pin your first memory — where you met, a favourite trip, or home.
             </p>
+            <Link
+              href="/onboarding"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white"
+              style={{ backgroundColor: "var(--theme-accent)" }}
+            >
+              Start with where we met
+            </Link>
             <button
               type="button"
               onClick={handleAddNew}
-              className="mt-5 min-h-11 rounded-full px-6 py-2 text-sm font-medium text-white"
-              style={{ backgroundColor: "var(--theme-accent)" }}
+              className="mt-3 min-h-11 rounded-full border px-6 py-2 text-sm font-medium"
+              style={{
+                borderColor: "var(--theme-border)",
+                color: "var(--theme-ink)",
+              }}
             >
-              Add your first memory
+              Add a memory instead
             </button>
             {canSeedDemo && (
               <button

@@ -50,11 +50,11 @@ export function PartnerIndicator() {
 
   async function handleSwitch() {
     const confirmed = await confirm({
-      title: `Switch from ${name}?`,
-      description: "You'll need to enter a password again to open the other view.",
-      confirmLabel: "Switch user",
+      title: `Sign out of ${name}?`,
+      description: "The other person can then sign in as panda or henne on this device.",
+      confirmLabel: "Sign out",
     });
-    if (confirmed) signOut();
+    if (confirmed) void signOut();
   }
 
   return (
@@ -77,7 +77,7 @@ export function PartnerIndicator() {
             Signed in as {name}
           </h2>
           <p className="mt-1 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
-            Switch user to open the other person&apos;s view. You&apos;ll need their password.
+            Sign out to let the other person open the journal on this device.
           </p>
         </div>
         <button
@@ -90,7 +90,7 @@ export function PartnerIndicator() {
             fontFamily: "var(--font-label)",
           }}
         >
-          Switch user
+          Sign out
         </button>
       </div>
     </section>

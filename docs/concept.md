@@ -44,6 +44,10 @@ Think of it as a shared diary with a map as its spine. The map lets you wander s
 - Fill in memory details and attach photos
 - Edit or delete existing memories
 
+### First visit
+- Welcome on this device, then pin where you met
+- Skip anytime; replay the guide from Settings
+
 ### Shared cloud
 - Memories live in Supabase Postgres; photos live in Supabase Storage
 - Both of you use the same project
@@ -69,7 +73,7 @@ Think of it as a shared diary with a map as its spine. The map lets you wander s
 
 ## Future Ideas (v2+)
 
-- **Couple login**, Supabase auth and allowlist (prepared, currently off)
+- **Couple login**, username `panda` / `henne` plus password (Supabase email auth underneath)
 - **JSON backup**, export / import of memories and photo metadata
 - **Anniversary reminders**, gentle notifications on milestone dates
 - **Printed atlas export**, PDF or print-ready layout for a physical gift

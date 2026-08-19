@@ -21,7 +21,8 @@ Open [http://localhost:3000](http://localhost:3000) for the map.
 | `/?view=gallery` | Photo wall of shared memories |
 | `/timeline` | Chronological story of all memories |
 | `/album` | Filterable photo album with lightbox |
-| `/settings` | Partner switch, hidden photos, photo manager |
+| `/settings` | Who is signed in, hidden photos, photo manager |
+| `/onboarding` | First-run welcome and “where we met” |
 
 Full route map: [`docs/review/README.md`](docs/review/README.md).
 
@@ -39,8 +40,10 @@ All UI is **mobile-first**, every feature must work on a 375px phone viewport. S
 - **Memory cards** with photos, journal entries, dates
 - **Gallery wall** and **photo album**
 - **Place search** via OpenStreetMap (Nominatim)
+- **Couple login**, sign in as `panda` or `henne`
 - **Cloud storage**, Supabase Postgres + photo Storage (shared between you two)
 - **Live reload** when the other person adds or edits a memory
+- **First-run onboarding**, welcome plus a guided “where we met” pin
 - **Warm Atelier design**, cream journal aesthetic throughout
 
 ## Docs

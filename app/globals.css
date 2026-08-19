@@ -102,6 +102,20 @@ body {
   display: none !important;
 }
 
+/* Stay bottom-left. Only lift on the mobile sheet — never on md+ (side panel). */
+.map-layer-controls {
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 767.98px) {
+  .map-layer-controls {
+    bottom: max(
+      calc(1.5rem + var(--map-controls-offset, 0px)),
+      calc(env(safe-area-inset-bottom) + var(--map-controls-offset, 0px))
+    );
+  }
+}
+
 .memory-marker-wrap {
   background: none !important;
   border: none !important;

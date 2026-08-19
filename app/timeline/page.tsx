@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { NavBar } from "@/components/NavBar";
 import { AddMemoryForm } from "@/components/AddMemoryForm";
@@ -92,8 +93,15 @@ export default function TimelinePage() {
               No memories yet
             </p>
             <p className="mt-2 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
-              Add your first memory on the map to start building your story.
+              Start with where you met, or add a memory on the map.
             </p>
+            <Link
+              href="/onboarding"
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white"
+              style={{ backgroundColor: "var(--theme-accent)" }}
+            >
+              Start with where we met
+            </Link>
           </div>
         ) : (
           <TimelineJourney

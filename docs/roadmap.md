@@ -15,14 +15,15 @@
 - [x] Keyboard shortcuts (Esc close, N new memory, arrows in stacks / lightbox)
 - [x] Loading states and error handling
 - [x] Themed confirm dialog
-- [x] Supabase backend (Postgres + Storage; auth prepared but off)
+- [x] Supabase backend (Postgres + Storage; couple login on)
 - [x] Real-time reload when either partner adds or edits
 - [x] Dual journals and partner switch (`panda` / `henne`)
+- [x] Onboarding wizard and “where we met” guided pin
 
 ## Still open
 
 - [ ] Export / import JSON backup
-- [ ] Couple login in production (`AUTH_ENABLED`, drop open anon RLS)
+- [x] Couple login in production (`AUTH_ENABLED`, drop open anon RLS)
 - [ ] Conflict resolution beyond last-write-wins
 - [ ] Theme picker / `/styles` — dropped; one theme ships (see `docs/design-system.md`)
 
@@ -35,12 +36,10 @@
 - [ ] Rich text journal (markdown)
 - [ ] Tags and filtering
 
-## Phase 5, Gift Mode (deferred)
+## Phase 5, Gift Mode (later)
 
-Onboarding, gift mode, and QR wait until auth is on and the core journal is stable.
-
-- [ ] Onboarding wizard for first-time setup
-- [ ] Pre-seed with "where we met" guided flow
+- [x] Onboarding wizard for first-time setup
+- [x] Pre-seed with "where we met" guided flow
 - [ ] Presentation mode, fullscreen slideshow of memories
 - [ ] QR code to open on partner's phone
 - [ ] Profile row (email, avatar, display name) after auth enablement
@@ -55,7 +54,7 @@ Onboarding, gift mode, and QR wait until auth is on and the core journal is stab
 | Storage | Supabase Postgres + Storage |
 | Geocoding | Nominatim (OpenStreetMap) |
 | Hosting | Vercel + custom domain |
-| Auth | Partner gate now; Supabase allowlist prepared |
+| Auth | Username `panda` / `henne` + password (dummy email under the hood) |
 
 ## Standing rules
 

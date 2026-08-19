@@ -1,11 +1,20 @@
 # Hosting & data (cloud)
 
-Liebeskarte stores memories in **Supabase Postgres** and photos in **Supabase Storage**. The website (and custom domain) stay on **Vercel**.
+Liebeskarte stores memories in **Supabase Postgres** and photos in **Supabase Storage**. The website (and custom domain) stay on **Vercel**. Login is **on**: username `panda` or `henne` plus a password. Supabase only accepts email or phone, so those usernames map to dummy emails (`panda@liebeskarte.app`, `henne@liebeskarte.app`) and accounts are created already confirmed.
+
+## Sign in (for now)
+
+Use the username, not the dummy email. Rotate these later and remove this table.
+
+| Username | Password |
+|----------|----------|
+| `panda` | `Lk-jryL31vd` |
+| `henne` | `Lk-TzGh8JYf` |
 
 ## 1. Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) → New project (Free).
-2. Copy **Project URL** and **anon public** key from Settings → API.
+2. Copy **Project URL** and **anon public** / publishable key from Settings → API.
 3. In this `web/` folder, create `.env.local`:
 
 ```
@@ -13,13 +22,27 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-4. In Supabase → SQL Editor, paste and run [`supabase/schema.sql`](../supabase/schema.sql).
-5. Edit the last `insert into couple_allowlist` so it has **your two emails**.
-6. Login is **off** for now (`AUTH_ENABLED = false` in `lib/auth.tsx`). Schema includes open `anon` policies so the app can read/write without sign-in. Turn auth on later by flipping that flag and dropping the `while auth off` policies.
+4. In Supabase → SQL Editor, paste and run [`supabase/schema.sql`](../supabase/schema.sql). That file is idempotent and is the auth-on cutover (open anon policies dropped, partner profiles, personal/journal RLS, storage path checks).
+5. Authentication → Providers → Email: **disable new user signups**. Allowlist + a `before insert` trigger on `auth.users` also reject unknown emails.
+6. Create the two users (confirmed, no inbox step):
+
+```bash
+# web/.env.migrate needs NEW_DATABASE_URL or NEW_DB_PASSWORD
+npm run seed:couple-users
+```
+
+Or in the SQL editor, after schema.sql:
+
+```sql
+select public.create_couple_user('panda@liebeskarte.app', 'choose-a-password', 'panda');
+select public.create_couple_user('henne@liebeskarte.app', 'choose-a-password', 'henne');
+```
+
+Sign in with username `panda` or `henne` and that password. Session refresh runs in `proxy.ts` (Next.js 16; do not add `middleware.ts`).
 
 ## 2. Use the app
 
-Restart the dev server after adding keys. You and your partner share the same Supabase project, no login screen until you enable auth.
+Restart the dev server after adding keys. Each of you signs in once; the session stays on that device.
 
 ## 3. Deploy frontend (custom domain, $0)
 
@@ -31,16 +54,19 @@ Restart the dev server after adding keys. You and your partner share the same Su
 
 | Data | Place |
 |------|--------|
-| Titles, dates, places, journal | Supabase table `memories` |
-| Photo files | Supabase bucket `memory-photos` |
+| Titles, dates, places, journal | Supabase table `memories` (reads go through `memories_visible`) |
+| Photo files | Supabase bucket `memory-photos` (15 MB, images only) |
 | Photo metadata | Supabase table `photos` |
-| Who can see it | `couple_allowlist` + login |
+| Who can sign in | `couple_allowlist` + `profiles` (panda / henne) |
+| Live reload ping | `sync_events` (no journal text on the wire) |
 | The Next.js app | Vercel + your domain |
 
 Supabase is the source of truth. JSON export / import is not built yet.
 
+Signed photo URLs last 24 hours and are regenerated on load. Anyone with the URL can view that photo until it expires. Fine for this private couple app once RLS is on.
+
 ## 4. Realtime (existing projects)
 
-New projects that run [`supabase/schema.sql`](../supabase/schema.sql) already publish `memories` and `photos` to Realtime.
+New projects that run [`supabase/schema.sql`](../supabase/schema.sql) publish `sync_events` to Realtime (not raw `memories` / `photos`, so private journals are not in the websocket payload).
 
-If the database already exists, run [`supabase/migrate-realtime.sql`](../supabase/migrate-realtime.sql) in the SQL editor so both partners see edits without refreshing.
+If the database already exists, run the same `schema.sql` in the SQL editor. Older [`supabase/migrate-realtime.sql`](../supabase/migrate-realtime.sql) added table-level memory/photo publication; the auth-on schema replaces that with `sync_events`.

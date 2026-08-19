@@ -6,6 +6,7 @@ import { PartnerIndicator } from "@/components/PartnerIndicator";
 import { PhotoManager } from "@/components/PhotoManager";
 import { ShowHiddenPhotosSetting } from "@/components/ShowHiddenPhotosSetting";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { ReplayOnboardingSetting } from "@/components/ReplayOnboardingSetting";
 import { DataErrorBanner } from "@/components/DataErrorBanner";
 import { useMemories } from "@/lib/useMemories";
 import { LoveLoading } from "@/components/LoveLoading";
@@ -45,6 +46,8 @@ export default function SettingsPage() {
         <ShowHiddenPhotosSetting />
 
         <KeyboardShortcuts />
+
+        <ReplayOnboardingSetting />
 
         <section>
           <h2

@@ -107,7 +107,7 @@ interface MapCanvasProps {
   onSelectMemory?: (memory: Memory) => void;
   onMapClick?: (lat: number, lng: number) => void;
   flyToId?: string | null;
-  /** Extra bottom offset (px) for controls when a bottom sheet is open */
+  /** Extra bottom offset (px) on mobile when a bottom sheet is open. Ignored on md+. */
   controlsOffset?: number;
   /** Hide layer/home/fit controls (e.g. while add-memory form is open) */
   hideControls?: boolean;
@@ -337,9 +337,9 @@ export function MapCanvas({
       />
       {!hideControls && (
       <div
-        className="pointer-events-auto absolute left-4 z-[1000] transition-[bottom] duration-300"
+        className="map-layer-controls pointer-events-auto absolute left-4 z-[1000] transition-[bottom] duration-300"
         style={{
-          bottom: `max(calc(1.5rem + ${controlsOffset}px), calc(env(safe-area-inset-bottom) + ${controlsOffset}px))`,
+          ["--map-controls-offset" as string]: `${controlsOffset}px`,
         }}
       >
         <div

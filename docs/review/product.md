@@ -8,7 +8,7 @@ Gaps between what the app delivers, what docs promise, and what would complete t
 
 | Flow | Route / entry | Key files | Status |
 |------|---------------|-----------|--------|
-| Partner gate | App shell | `PartnerGate.tsx`, `CurrentPartnerProvider.tsx` | Working — client password |
+| Partner login | App shell | `AuthGate.tsx`, `CurrentPartnerProvider.tsx` | Working — username panda/henne |
 | Map | `/` | `MapPageClient.tsx`, `MapCanvas.tsx` | Working — pins, journey, layers, add via map click, empty CTA |
 | Gallery wall | `/?view=gallery` | `GalleryCanvas.tsx` | Working — shuffle, reduced motion |
 | Memory CRUD | Map / timeline edit | `AddMemoryForm.tsx`, `lib/db.ts` | Working — geocode, dual journals, HEIC |
@@ -19,7 +19,8 @@ Gaps between what the app delivers, what docs promise, and what would complete t
 | Confirm | Deletes / switch | `ConfirmDialog.tsx` | Working — Warm Atelier dialog |
 | Realtime | `useMemories` | `lib/useMemories.ts` | Working — reload on `memories` / `photos` changes |
 | Supabase backend | — | `supabase/schema.sql`, `lib/db.ts` | Working — Postgres + Storage |
-| Supabase login | — | `AuthGate.tsx`, `lib/auth.tsx` | Built but **disabled** |
+| Onboarding | `/onboarding` | `OnboardingWizard.tsx`, `OnboardingGate.tsx` | Working — first visit + replay |
+| Supabase login | — | `AuthGate.tsx`, `lib/auth.tsx` | **On** — dummy emails, no public signup |
 
 ---
 
@@ -57,15 +58,15 @@ Empty map shows “Add your first memory”. Development builds also offer “Pr
 
 **Status:** Done.
 
-`useMemories` subscribes to `memories` and `photos` and silently reloads. Existing projects need [`supabase/migrate-realtime.sql`](../../supabase/migrate-realtime.sql).
+`useMemories` subscribes to `sync_events` and silently reloads. Existing projects need the auth-on [`supabase/schema.sql`](../../supabase/schema.sql) so private journals are not in the realtime payload.
 
 ---
 
 ### LOW — Onboarding wizard not built
 
-**Status:** Deferred (Phase 5). Roadmap updated.
+**Status:** Done.
 
-“Where we met” guided flow, gift mode, QR — not in codebase.
+`/onboarding` walks through welcome → where we met → how the journal works. First visit on a device redirects here until finished or skipped. Settings can replay it. Gift mode and QR stay later.
 
 ---
 
@@ -95,9 +96,7 @@ Map: Esc closes card/editor, N adds a memory. Stacks and lightbox keep arrow key
 
 ### LOW — “Profile” is partner identity only
 
-**Status:** Deferred until auth is enabled.
-
-Partner = `panda` | `henne` via password gate. No avatar or display name settings.
+**Status:** Partner is derived from the signed-in user (`profiles.partner`). No avatar or display name settings yet.
 
 ---
 
@@ -116,9 +115,9 @@ Partner = `panda` | `henne` via password gate. No avatar or display name setting
 | Themed confirm | design-system | Yes |
 | Keyboard shortcuts | Settings, roadmap | Yes |
 | Export / import JSON | roadmap (open) | **No** |
-| Supabase auth (production) | hosting | Prepared, off |
+| Supabase auth (production) | hosting | Yes — username panda/henne |
 | Theme picker / `/styles` | design-system (historical) | No — single theme |
-| Onboarding wizard | roadmap Phase 5 | No — deferred |
+| Onboarding wizard | README, roadmap | Yes |
 
 ---
 
@@ -129,4 +128,4 @@ Partner = `panda` | `henne` via password gate. No avatar or display name setting
 3. ~~Realtime reload~~
 4. ~~Themed delete confirmation~~
 5. Export / import when a file backup is needed
-6. Onboarding / gift mode / profile (after auth)
+6. Gift mode / profile (after auth)

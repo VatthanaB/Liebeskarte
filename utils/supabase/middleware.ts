@@ -28,7 +28,7 @@ export const createClient = async (request: NextRequest) => {
     },
   });
 
-  // Refresh the session if one exists. Auth UI is still off.
+  // Refresh the session. Next.js 16 runs this from proxy.ts (not middleware.ts).
   await supabase.auth.getUser();
 
   return supabaseResponse;

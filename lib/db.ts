@@ -129,7 +129,7 @@ async function signedUrl(path: string): Promise<string> {
 export async function getAllMemories(): Promise<Memory[]> {
   const supabase = createClient();
   const { data: rows, error } = await supabase
-    .from("memories")
+    .from("memories_visible")
     .select("*")
     .order("date", { ascending: true });
 
