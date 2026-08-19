@@ -93,14 +93,14 @@ export default function TimelinePage() {
               No memories yet
             </p>
             <p className="mt-2 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
-              Start with where you met, or add a memory on the map.
+              Add a memory on the map to start your timeline.
             </p>
             <Link
-              href="/onboarding"
+              href="/"
               className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white"
               style={{ backgroundColor: "var(--theme-accent)" }}
             >
-              Start with where we met
+              Add a memory
             </Link>
           </div>
         ) : (

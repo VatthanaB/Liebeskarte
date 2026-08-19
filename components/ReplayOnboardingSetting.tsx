@@ -2,9 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { resetOnboarding } from "@/lib/onboarding";
+import { useCurrentPartner } from "@/components/CurrentPartnerProvider";
 
 export function ReplayOnboardingSetting() {
   const router = useRouter();
+  const { partner } = useCurrentPartner();
+
+  if (partner !== "henne") {
+    return null;
+  }
 
   function handleReplay() {
     resetOnboarding();
@@ -25,23 +31,23 @@ export function ReplayOnboardingSetting() {
             className="text-lg font-semibold"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Welcome guide
+            Your birthday letter
           </h2>
           <p className="mt-1 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
-            Replay the first-run walkthrough, including where we met.
+            Read your letter again — the one I wrote for you on your birthday.
           </p>
         </div>
         <button
           type="button"
           onClick={handleReplay}
-          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center rounded-full border px-4 text-sm font-medium self-start sm:self-center"
+          className="inline-flex h-11 min-w-11 shrink-0 items-center justify-center self-start rounded-full border px-4 text-sm font-medium sm:self-center"
           style={{
             borderColor: "var(--theme-border)",
             color: "var(--theme-ink)",
             fontFamily: "var(--font-label)",
           }}
         >
-          Replay guide
+          Read again
         </button>
       </div>
     </section>

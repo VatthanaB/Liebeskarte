@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MapCanvas } from "@/components/MapCanvas";
 import { GalleryCanvas } from "@/components/GalleryCanvas";
@@ -221,7 +220,7 @@ export default function MapPageClient() {
         />
       </div>
 
-      {loading && (viewMode === "gallery" || viewMode === "map") && (
+      {loading && viewMode === "gallery" && memories.length === 0 && (
         <LoveLoading variant="overlay" />
       )}
 
@@ -229,7 +228,7 @@ export default function MapPageClient() {
         <div className="pointer-events-none absolute inset-x-0 top-[max(5rem,calc(env(safe-area-inset-top)+3.5rem))] z-[1050] px-4">
           <DataErrorBanner
             message={error!}
-            onRetry={reload}
+            onRetry={() => reload({ silent: false })}
             onDismiss={() => setDismissedError(error!)}
           />
         </div>
@@ -253,23 +252,13 @@ export default function MapPageClient() {
             <p className="mt-2 text-sm" style={{ color: "var(--theme-ink-muted)" }}>
               Pin your first memory — where you met, a favourite trip, or home.
             </p>
-            <Link
-              href="/onboarding"
-              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white"
-              style={{ backgroundColor: "var(--theme-accent)" }}
-            >
-              Start with where we met
-            </Link>
             <button
               type="button"
               onClick={handleAddNew}
-              className="mt-3 min-h-11 rounded-full border px-6 py-2 text-sm font-medium"
-              style={{
-                borderColor: "var(--theme-border)",
-                color: "var(--theme-ink)",
-              }}
+              className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full px-6 py-2 text-sm font-medium text-white"
+              style={{ backgroundColor: "var(--theme-accent)" }}
             >
-              Add a memory instead
+              Add a memory
             </button>
             {canSeedDemo && (
               <button

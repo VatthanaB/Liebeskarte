@@ -1,4 +1,4 @@
-export const ONBOARDING_STORAGE_KEY = "liebeskarte-onboarding";
+export const ONBOARDING_STORAGE_KEY = "liebeskarte-onboarding-henne";
 export const ONBOARDING_CHANGE_EVENT = "liebeskarte-onboarding-change";
 
 function notifyOnboardingChange() {

@@ -478,6 +478,130 @@ body {
   }
 }
 
+/* ── Henne birthday letter onboarding ── */
+.gift-letter {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(240, 228, 216, 0.45), transparent),
+    var(--theme-bg);
+}
+
+.gift-letter__doodle {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  color: var(--theme-accent);
+  opacity: 0.35;
+  font-size: 1.15rem;
+  animation: galleryDoodleFloat 7s ease-in-out infinite;
+}
+
+.gift-letter__doodle--a { top: 14%; left: 10%; animation-delay: 0s; }
+.gift-letter__doodle--b { top: 22%; right: 12%; font-size: 1.35rem; animation-delay: 1.4s; }
+.gift-letter__doodle--c { bottom: 18%; left: 16%; animation-delay: 2.6s; }
+.gift-letter__doodle--d { bottom: 28%; right: 14%; font-size: 0.95rem; animation-delay: 3.8s; }
+
+.gift-letter__hearts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gift-letter__heart {
+  color: var(--theme-border);
+  font-size: 0.85rem;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.gift-letter__heart--on {
+  color: var(--theme-accent);
+}
+
+.gift-letter__heart--pulse {
+  color: var(--theme-accent);
+  animation: loveLoadingPulse 1.2s ease-in-out infinite;
+}
+
+.gift-letter__envelope {
+  position: relative;
+  width: 7.5rem;
+  height: 5rem;
+  perspective: 600px;
+}
+
+.gift-letter__envelope-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px 4px 6px 6px;
+  background: linear-gradient(165deg, #fffcf7 0%, #f5ebe0 100%);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 8px 24px rgba(61, 50, 41, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-letter__envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  transform-origin: top center;
+  background: linear-gradient(180deg, #f0e4d8, #fffcf7);
+  border: 1px solid var(--theme-border);
+  border-bottom: 0;
+  clip-path: polygon(0 0, 50% 85%, 100% 0);
+  z-index: 2;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gift-letter__envelope--open .gift-letter__envelope-flap {
+  transform: rotateX(180deg);
+}
+
+.gift-letter__seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  font-size: 1rem;
+  color: #fffcf7;
+  background: radial-gradient(circle at 35% 30%, #c97b6a, var(--theme-accent));
+  box-shadow: 0 2px 8px rgba(61, 50, 41, 0.2);
+  animation: giftLetterSealPulse 2s ease-in-out infinite;
+  z-index: 3;
+}
+
+.gift-letter__seal--open {
+  animation: giftLetterSealOpen 0.45s ease-out forwards;
+}
+
+.gift-letter__screen {
+  opacity: 0;
+  animation: loveLoadingIn 0.35s ease-out forwards;
+}
+
+.gift-letter__screen--delay-1 { animation-delay: 0.08s; }
+.gift-letter__screen--delay-2 { animation-delay: 0.16s; }
+.gift-letter__screen--delay-3 { animation-delay: 0.24s; }
+
+@keyframes giftLetterSealPulse {
+  0%,
+  100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes giftLetterSealOpen {
+  to {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gallery-doodle,
   .gallery-hint,
@@ -485,8 +609,22 @@ body {
   .gallery-frame__mat,
   .love-loading__heart,
   .love-loading__phrase--in,
-  .love-loading__phrase--out {
+  .love-loading__phrase--out,
+  .gift-letter__doodle,
+  .gift-letter__seal,
+  .gift-letter__heart--pulse,
+  .gift-letter__screen,
+  .gift-letter__envelope-flap {
     animation: none;
+  }
+
+  .gift-letter__screen {
+    opacity: 1;
+  }
+
+  .gift-letter__envelope--open .gift-letter__envelope-flap {
+    transform: none;
+    opacity: 0.4;
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getAllMemories, getAllPhotos } from "@/lib/db";
 import type { Memory, Photo } from "@/lib/types";
 import { AUTH_ENABLED, useAuth } from "@/lib/auth";
@@ -41,6 +41,11 @@ function buildPhotoUrlMap(
   return urlMap;
 }
 
+export type LoadMemoriesOptions = {
+  /** When omitted, reloads after the first fetch are silent (no loading UI). */
+  silent?: boolean;
+};
+
 export function useMemories() {
   const { user } = useAuth();
   const { partner } = useCurrentPartner();
@@ -49,34 +54,44 @@ export function useMemories() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [photoUrlMap, setPhotoUrlMap] = useState<Record<string, string[]>>({});
+  const loadGenerationRef = useRef(0);
+  const hasLoadedRef = useRef(false);
 
-  const loadMemories = useCallback(async (options?: { silent?: boolean }) => {
+  const loadMemories = useCallback(async (options?: LoadMemoriesOptions) => {
     if (AUTH_ENABLED && !user) {
       setMemories([]);
       setPhotoUrlMap({});
       setError(null);
       setLoading(false);
+      hasLoadedRef.current = true;
       return;
     }
 
-    const silent = options?.silent === true;
+    const generation = ++loadGenerationRef.current;
+    const silent = options?.silent ?? hasLoadedRef.current;
     if (!silent) {
       setLoading(true);
       setError(null);
     }
     try {
       const [data, allPhotos] = await Promise.all([getAllMemories(), getAllPhotos()]);
+      if (generation !== loadGenerationRef.current) return;
+
       const visible = data.filter((memory) => visibleToPartner(memory, partner));
       setMemories(visible);
       setPhotoUrlMap(buildPhotoUrlMap(visible, allPhotos, showHiddenPhotos));
       setError(null);
     } catch (err) {
+      if (generation !== loadGenerationRef.current) return;
       console.error("[atlas:db] loadMemories failed", err);
       if (!silent) {
         setError(loadErrorMessage(err));
       }
     } finally {
-      if (!silent) setLoading(false);
+      if (generation === loadGenerationRef.current) {
+        hasLoadedRef.current = true;
+        if (!silent) setLoading(false);
+      }
     }
   }, [user, showHiddenPhotos, partner]);
 
