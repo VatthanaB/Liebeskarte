@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AUTH_ENABLED, useAuth } from "@/lib/auth";
 
 type ViewMode = "map" | "gallery";
 
@@ -14,7 +13,6 @@ interface NavBarProps {
 
 export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
   const pathname = usePathname();
-  const { signOut: signOutAuth, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const links = [
@@ -157,20 +155,6 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
                   {link.label}
                 </Link>
               ))}
-              {AUTH_ENABLED && user && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    signOutAuth();
-                  }}
-                  className="flex h-11 w-full items-center px-3.5 text-left text-sm"
-                  style={{ color: "var(--theme-ink-muted)" }}
-                >
-                  Sign out
-                </button>
-              )}
             </div>
           )}
 
@@ -199,15 +183,6 @@ export function NavBar({ viewMode, onAddMemory }: NavBarProps) {
                 </Link>
               );
             })}
-            {AUTH_ENABLED && user && (
-              <button
-                onClick={() => signOutAuth()}
-                className="inline-flex min-h-11 items-center justify-center rounded-full px-3 text-[11px] font-medium transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
-                style={{ color: "var(--theme-ink-muted)" }}
-              >
-                Sign out
-              </button>
-            )}
           </div>
         </div>
       </nav>
