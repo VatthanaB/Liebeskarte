@@ -284,8 +284,10 @@ create trigger on_auth_user_created_profile
   after insert on auth.users
   for each row execute function public.handle_new_couple_user();
 
+-- Invoker view: callers need SELECT on public.memories, and RLS applies.
+-- The CASE expressions still redact the other partner's unshared journal.
 create or replace view public.memories_visible
-with (security_barrier = true) as
+with (security_barrier = true, security_invoker = true) as
 select
   m.id,
   m.title,
@@ -352,6 +354,17 @@ drop policy if exists "couple can insert memories" on public.memories;
 drop policy if exists "couple can update memories" on public.memories;
 drop policy if exists "couple can delete memories" on public.memories;
 
+create policy "couple can select memories"
+  on public.memories for select
+  to authenticated
+  using (
+    public.is_couple_member()
+    and (
+      visibility = 'shared'
+      or owner = public.current_partner_id()
+    )
+  );
+
 create policy "couple can insert memories"
   on public.memories for insert
   to authenticated
@@ -415,8 +428,7 @@ revoke all on public.profiles from anon;
 revoke all on public.sync_events from anon;
 revoke all on public.memories_visible from anon;
 
-revoke select on public.memories from authenticated;
-grant insert, update, delete on public.memories to authenticated;
+grant select, insert, update, delete on public.memories to authenticated;
 grant select on public.memories_visible to authenticated;
 grant select, insert, update, delete on public.photos to authenticated;
 grant select on public.couple_allowlist to authenticated;

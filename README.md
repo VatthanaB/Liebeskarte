@@ -21,7 +21,7 @@ Open [http://localhost:3000](http://localhost:3000) for the map.
 | `/?view=gallery` | Photo wall of shared memories |
 | `/timeline` | Chronological story of all memories |
 | `/album` | Filterable photo album with lightbox |
-| `/settings` | Who is signed in, hidden photos, photo manager |
+| `/settings` | Who is signed in, hidden photos, memory and photo manager |
 | `/onboarding` | First-run welcome and “where we met” |
 
 Full route map: [`docs/review/README.md`](docs/review/README.md).

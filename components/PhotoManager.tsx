@@ -22,7 +22,6 @@ import {
   getUniqueMonths,
   getUniqueYears,
   MONTH_LABELS,
-  MONTH_SHORT_LABELS,
 } from "@/lib/photos";
 import { PhotoLightbox, type LightboxPhoto } from "./PhotoLightbox";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
@@ -300,13 +299,16 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
   ];
 
   const selectClass =
-    "min-h-11 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 md:w-auto md:min-w-[12rem]";
+    "min-h-11 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2";
   const selectStyle = {
     borderColor: "var(--theme-border)",
     backgroundColor: "var(--theme-bg)",
     color: "var(--theme-ink)",
     fontFamily: "var(--font-body)",
   };
+  const labelClass =
+    "mb-1 block text-[10px] uppercase tracking-wider";
+  const labelStyle = { color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" };
 
   if (loading) {
     return <LoveLoading />;
@@ -364,176 +366,109 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
         })}
       </div>
 
-      <div className="mb-6 space-y-4">
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <label className="block">
-            <span
-              className="mb-1 block text-xs uppercase tracking-wider"
-              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
-            >
-              Event
-            </span>
-            <select
-              className={selectClass}
-              style={selectStyle}
-              value={memoryFilter ?? ""}
-              onChange={(e) => setMemoryFilter(e.target.value || null)}
-            >
-              <option value="">All events</option>
-              {eventOptions.map((memory) => (
-                <option key={memory.id} value={memory.id}>
-                  {memory.title} · {formatShortDate(memory.date)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span
-              className="mb-1 block text-xs uppercase tracking-wider"
-              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
-            >
-              Sort by
-            </span>
-            <select
-              className={selectClass}
-              style={selectStyle}
-              value={sort}
-              onChange={(e) => setSort(e.target.value as PhotoSort)}
-            >
-              <option value="event-date-desc">Event date · newest first</option>
-              <option value="event-date-asc">Event date · oldest first</option>
-              <option value="event-title">Event title · A to Z</option>
-              <option value="upload-desc">Upload date · newest first</option>
-              <option value="upload-asc">Upload date · oldest first</option>
-            </select>
-          </label>
-        </div>
-
-        <div>
-          <span
-            className="mb-2 block text-xs uppercase tracking-wider"
-            style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3">
+        <label className="col-span-2 block md:col-span-1">
+          <span className={labelClass} style={labelStyle}>
+            Event
+          </span>
+          <select
+            className={selectClass}
+            style={selectStyle}
+            value={memoryFilter ?? ""}
+            onChange={(e) => setMemoryFilter(e.target.value || null)}
           >
+            <option value="">All events</option>
+            {eventOptions.map((memory) => (
+              <option key={memory.id} value={memory.id}>
+                {memory.title} · {formatShortDate(memory.date)}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className={labelClass} style={labelStyle}>
+            Sort
+          </span>
+          <select
+            className={selectClass}
+            style={selectStyle}
+            value={sort}
+            onChange={(e) => setSort(e.target.value as PhotoSort)}
+          >
+            <option value="event-date-desc">Newest first</option>
+            <option value="event-date-asc">Oldest first</option>
+            <option value="event-title">Title A–Z</option>
+            <option value="upload-desc">Upload · newest</option>
+            <option value="upload-asc">Upload · oldest</option>
+          </select>
+        </label>
+
+        <label className="block">
+          <span className={labelClass} style={labelStyle}>
             Visibility
           </span>
-          <div className="flex flex-wrap gap-2">
-            {visibilityOptions.map(({ value, label }) => {
-              const active = visibilityFilter === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setVisibilityFilter(value)}
-                  className="min-h-11 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                  style={{
-                    backgroundColor: active ? "var(--theme-accent)" : "transparent",
-                    color: active ? "#fff" : "var(--theme-ink-muted)",
-                    border: active ? "none" : "1px solid var(--theme-border)",
-                    fontFamily: "var(--font-label)",
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+          <select
+            className={selectClass}
+            style={selectStyle}
+            value={visibilityFilter}
+            onChange={(e) => setVisibilityFilter(e.target.value as VisibilityFilter)}
+          >
+            {visibilityOptions.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        {years.length > 0 && (
-          <div>
-            <span
-              className="mb-2 block text-xs uppercase tracking-wider"
-              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
-            >
-              Year
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => selectYear(null)}
-                className="min-h-11 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                style={{
-                  backgroundColor: yearFilter === null ? "var(--theme-accent)" : "transparent",
-                  color: yearFilter === null ? "#fff" : "var(--theme-ink-muted)",
-                  border: yearFilter === null ? "none" : "1px solid var(--theme-border)",
-                  fontFamily: "var(--font-label)",
-                }}
-              >
-                All years
-              </button>
-              {years.map((year) => {
-                const active = yearFilter === year;
-                return (
-                  <button
-                    key={year}
-                    type="button"
-                    onClick={() => selectYear(year)}
-                    className="min-h-11 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                    style={{
-                      backgroundColor: active ? "var(--theme-accent)" : "transparent",
-                      color: active ? "#fff" : "var(--theme-ink-muted)",
-                      border: active ? "none" : "1px solid var(--theme-border)",
-                      fontFamily: "var(--font-label)",
-                    }}
-                  >
-                    {year}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <label className="block">
+          <span className={labelClass} style={labelStyle}>
+            Year
+          </span>
+          <select
+            className={selectClass}
+            style={selectStyle}
+            value={yearFilter ?? ""}
+            onChange={(e) =>
+              selectYear(e.target.value ? Number.parseInt(e.target.value, 10) : null)
+            }
+          >
+            <option value="">All years</option>
+            {years.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+        </label>
 
-        {months.length > 0 && (
-          <div>
-            <span
-              className="mb-2 block text-xs uppercase tracking-wider"
-              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
-            >
-              Month
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setMonthFilter(null)}
-                className="min-h-11 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                style={{
-                  backgroundColor: monthFilter === null ? "var(--theme-accent)" : "transparent",
-                  color: monthFilter === null ? "#fff" : "var(--theme-ink-muted)",
-                  border: monthFilter === null ? "none" : "1px solid var(--theme-border)",
-                  fontFamily: "var(--font-label)",
-                }}
-              >
-                All months
-              </button>
-              {months.map((month) => {
-                const active = monthFilter === month;
-                return (
-                  <button
-                    key={month}
-                    type="button"
-                    onClick={() => setMonthFilter(month)}
-                    className="min-h-11 rounded-full px-4 py-2 text-xs font-medium transition-colors"
-                    style={{
-                      backgroundColor: active ? "var(--theme-accent)" : "transparent",
-                      color: active ? "#fff" : "var(--theme-ink-muted)",
-                      border: active ? "none" : "1px solid var(--theme-border)",
-                      fontFamily: "var(--font-label)",
-                    }}
-                  >
-                    {MONTH_SHORT_LABELS[month - 1]}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
-          Showing {filteredPhotos.length} of {scopedPhotos.length} {scope} photos
-        </p>
+        <label className="block">
+          <span className={labelClass} style={labelStyle}>
+            Month
+          </span>
+          <select
+            className={selectClass}
+            style={selectStyle}
+            value={monthFilter ?? ""}
+            disabled={months.length === 0}
+            onChange={(e) =>
+              setMonthFilter(e.target.value ? Number.parseInt(e.target.value, 10) : null)
+            }
+          >
+            <option value="">All months</option>
+            {months.map((month) => (
+              <option key={month} value={month}>
+                {MONTH_LABELS[month - 1]}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
+
+      <p className="mb-6 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+        {filteredPhotos.length} of {scopedPhotos.length} {scope} photos
+      </p>
 
       {filteredPhotos.length === 0 ? (
         <p className="text-center text-sm" style={{ color: "var(--theme-ink-muted)" }}>
