@@ -12,7 +12,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "134 Ponsonby Road, Grey Lynn, Auckland 1011, New Zealand",
     type: "met",
     journals: pandaSharedJournal(
-      "Wednesday night upstairs on Ponsonby Road. The first time we were in the same room, before we actually talked."
+      "Wednesday night, upstairs at Goblin on Ponsonby Road. I didn't know it yet — but that was the first time we were in the same room. Before a single real conversation."
     ),
     photoIds: [],
     createdAt: "2026-03-18T10:00:00.000Z",
@@ -28,7 +28,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "394 New North Road, Kingsland, Auckland 1021, New Zealand",
     type: "date",
     journals: pandaSharedJournal(
-      "You weren't supposed to be there, Victor was late. A girl asked for your Instagram, so you did the same with her. First time we actually talked. Then a random dinner invite you actually accepted."
+      "You weren't even supposed to be there — Victor was late. A girl asked for my Instagram, so you playfully did the same with her. Our first real conversation. Then you invited me to dinner — and I actually said yes."
     ),
     photoIds: [],
     createdAt: "2026-04-19T10:00:00.000Z",
@@ -44,7 +44,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "172 Dominion Road, Mount Eden, Auckland 1024, New Zealand",
     type: "date",
     journals: pandaSharedJournal(
-      "The invite after Saint Leonards, and you came. First dinner in the princess-room castle on Dominion Road."
+      "You invited me after Saint Leonards — and I came. Our first dinner together, in your princess-room castle on Dominion Road. I still can't believe I said yes."
     ),
     photoIds: [],
     createdAt: "2026-04-24T10:00:00.000Z",
@@ -60,7 +60,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "1 Franklin Road, Ponsonby, Auckland 1011, New Zealand",
     type: "date",
     journals: pandaSharedJournal(
-      "The night after first dinner at hers. Café by day, wine bar by night, Franklin Road, Ponsonby."
+      "The night after dinner at yours. Blue on Franklin Road — café by day, wine bar by night. I just wanted to see you again."
     ),
     photoIds: [],
     createdAt: "2026-04-25T10:00:00.000Z",
@@ -76,7 +76,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "183 Karangahape Road, Auckland 1010, New Zealand",
     type: "celebration",
     journals: pandaSharedJournal(
-      "SIR Relay at Double Whammy, shameless, intimate, respected. First proper night out as part of her world on K Road."
+      "SIR Relay at Double Whammy — shameless, intimate, respected. My first proper night out in your world on K Road. I loved every second of it."
     ),
     photoIds: [],
     createdAt: "2026-05-01T10:00:00.000Z",
@@ -92,7 +92,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Oneroa, Waiheke Island, Auckland, New Zealand",
     type: "trip",
     journals: pandaSharedJournal(
-      "Walking the track, bubbling and laughing on video. Writing in the imaginary gratitude journal. A blessed day, the island moments neither of us would have wanted to miss."
+      "We walked the track, bubbling and laughing on video. Our imaginary gratitude journal. Such a blessed day — I wouldn't have missed a single island moment with you."
     ),
     photoIds: [],
     createdAt: "2026-05-16T10:00:00.000Z",
@@ -108,7 +108,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Auckland, New Zealand",
     type: "custom",
     journals: pandaSharedJournal(
-      "First WhatsApp. Hello Stranger. All the small coincidences that led here, Saint Leonards, the dinner invite, the weeks of tiny benders, and the fact that none of it quite makes sense, which is what makes it beautiful."
+      "Our first WhatsApp. Hello Stranger. Saint Leonards, when you invited me to dinner, those weeks of tiny benders — none of it quite makes sense. That's exactly what makes it beautiful."
     ),
     photoIds: [],
     createdAt: "2026-05-17T10:00:00.000Z",
@@ -124,7 +124,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "20 Augustus Terrace, Parnell, Auckland 1053, New Zealand",
     type: "custom",
     journals: pandaSharedJournal(
-      "After CLEAR you went to her office, met Rishabh, then slept in the princess room. It was a pleasure to have you in her castle, and to meet someone so important in her world."
+      "After CLEAR I came to your office, met Rishabh, then stayed in the princess room. I loved having you show me your world — and meeting someone so important in it."
     ),
     photoIds: [],
     createdAt: "2026-05-21T10:00:00.000Z",
@@ -137,10 +137,10 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     lat: -36.8578257,
     lng: 174.7398183,
     placeName: "Auckland",
-    address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
+    address: "Richmond Road, Grey Lynn, Auckland 1021, New Zealand",
     type: "celebration",
     journals: pandaSharedJournal(
-      "The Thursday you became her official French boyfriend. Also the day you first wrote: because I love you very much."
+      "The Thursday I became your official French boyfriend. And the first time I wrote it plainly: because I love you very much."
     ),
     photoIds: [],
     createdAt: "2026-06-04T10:00:00.000Z",
@@ -152,11 +152,11 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     date: "2026-06-09",
     lat: -36.8578257,
     lng: 174.7398183,
-    placeName: "21 Chamberlain Street",
-    address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
+    placeName: "Richmond Road",
+    address: "Richmond Road, Grey Lynn, Auckland 1021, New Zealand",
     type: "home",
     journals: pandaSharedJournal(
-      "How do I get in the French castle? Morning on bikes, completely the opposite, and love doing life with you."
+      "How do I get into the French castle? Mornings on bikes — we're completely the opposite, and I love doing life with you."
     ),
     photoIds: [],
     createdAt: "2026-06-09T10:00:00.000Z",
@@ -172,7 +172,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "95-97 Customs Street West, Viaduct Harbour, Auckland 1010, New Zealand",
     type: "date",
     journals: pandaSharedJournal(
-      "Booked 8:15pm, then on to Sorry Mum with loved ones. A month-of-us dinner and a boogie, every Sorry Mum a reminder."
+      "I booked us for 8:15pm, then on to Sorry Mum with the people we love. Our one-month dinner and a boogie — every Sorry Mum still reminds me of you."
     ),
     photoIds: [],
     createdAt: "2026-06-13T10:00:00.000Z",
@@ -188,7 +188,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Te Henga / Bethells Beach, Waitākere Ranges, Auckland, New Zealand",
     type: "trip",
     journals: pandaSharedJournal(
-      "Weekend away west. Picnic, recharge, no FOMO about silent studios. It was very special, we will always connect Bethells with that time."
+      "A weekend away west — picnic, recharge, zero FOMO about silent studios. So special. I'll always connect Bethells with you."
     ),
     photoIds: [],
     createdAt: "2026-06-20T10:00:00.000Z",
@@ -200,11 +200,11 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     date: "2026-07-11",
     lat: -36.8578257,
     lng: 174.7398183,
-    placeName: "21 Chamberlain Street",
-    address: "21 Chamberlain Street, Grey Lynn, Auckland 1021, New Zealand",
+    placeName: "Richmond Road",
+    address: "Richmond Road, Grey Lynn, Auckland 1021, New Zealand",
     type: "date",
     journals: pandaSharedJournal(
-      "The chef cooked for her people, Antonia and Rishabh, in the French castle kitchen. Feeding the ones she loves."
+      "I cooked for your people — Antonia and Rishabh — in our French castle kitchen. Feeding the ones you love felt like the sweetest thing."
     ),
     photoIds: [],
     createdAt: "2026-07-11T10:00:00.000Z",
@@ -220,7 +220,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Vieux-Port, Marseille, France",
     type: "trip",
     journals: pandaSharedJournal(
-      "The first European morning next to each other. Marseille, the Vieux-Port, and picnics in the Calanques still ahead. We worked late nights for this."
+      "Our first European morning waking up next to you. Marseille, the Vieux-Port, Calanques picnics still ahead. We worked so many late nights for this — and you were worth every one."
     ),
     photoIds: [],
     createdAt: "2026-08-24T10:00:00.000Z",
@@ -236,7 +236,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Avignon, Vaucluse, France",
     type: "trip",
     journals: pandaSharedJournal(
-      "Back to his hometown for the last days in France. She meets his aunty, two days in Avignon after the sea."
+      "I took you back to my hometown for our last days in France. You met my aunty — two soft days in Avignon after the sea."
     ),
     photoIds: [],
     createdAt: "2026-08-28T10:00:00.000Z",
@@ -252,7 +252,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Eastern Friesland, Lower Saxony, Germany",
     type: "trip",
     journals: pandaSharedJournal(
-      "He comes to her. Ostfriesland, mum, the e-bike, lüften, and the place that made her. Stoked to show him her upbringing."
+      "I flew to you. Ostfriesland, your mum, the e-bike, lüften — the place that made you. I was so stoked you wanted to show me where you grew up."
     ),
     photoIds: [],
     createdAt: "2026-09-08T10:00:00.000Z",
@@ -268,7 +268,7 @@ const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
     address: "Eastern Friesland, Lower Saxony, Germany",
     type: "celebration",
     journals: pandaSharedJournal(
-      "Her birthday, at home in Germany, with him there. The present he was working on from the other side of the world finally gets to be given in person."
+      "Your birthday, at home in Germany, with me finally there. The present I'd been building from the other side of the world — I got to give it to you in person."
     ),
     photoIds: [],
     createdAt: "2026-09-09T10:00:00.000Z",
