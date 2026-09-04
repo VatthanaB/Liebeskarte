@@ -13,17 +13,25 @@ import { validatePhotoFile } from "@/lib/photo-limits";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
 import { useTheme } from "./ThemeProvider";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { MemoryPhoto } from "./MemoryPhoto";
 
 interface AddMemoryFormProps {
   initial?: Partial<Memory> & { lat: number; lng: number };
   onSave: (memory: Memory) => void;
   onCancel: () => void;
   onDelete?: () => void;
+  fullScreen?: boolean;
 }
 
 const MILESTONE_TYPES = Object.keys(MILESTONE_LABELS) as MilestoneType[];
 
-export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemoryFormProps) {
+export function AddMemoryForm({
+  initial,
+  onSave,
+  onCancel,
+  onDelete,
+  fullScreen = false,
+}: AddMemoryFormProps) {
   const { theme } = useTheme();
   const { partner: currentPartner } = useCurrentPartner();
   const otherPartner = otherPartnerId(currentPartner);
@@ -44,7 +52,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
   const [searchResults, setSearchResults] = useState<GeocodeResult[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [newPhotoHidden, setNewPhotoHidden] = useState<boolean[]>([]);
-  const [existingPhotos, setExistingPhotos] = useState<Array<{ id: string; url: string }>>(
+  const [existingPhotos, setExistingPhotos] = useState<Array<{ id: string; url: string; path: string }>>(
     [],
   );
   const [existingPhotoIds, setExistingPhotoIds] = useState<string[]>(
@@ -70,7 +78,9 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
       getPhotosForMemory(initial.id).then((photos) => {
         const visible = photos.filter((photo) => !photo.hidden);
         setExistingPhotos(
-          visible.map((photo) => ({ id: photo.id, url: photo.url })).filter((p) => p.url),
+          visible
+            .map((photo) => ({ id: photo.id, url: photo.url, path: photo.path }))
+            .filter((p) => p.url),
         );
         setExistingPhotoIds(photos.map((photo) => photo.id));
       });
@@ -226,8 +236,9 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
     setNewPhotoHidden((prev) => prev.filter((_, i) => i !== index));
   }
 
-  const inputClass =
-    "w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2";
+  const inputClass = `w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 ${
+    fullScreen ? "min-h-11" : ""
+  }`;
   const inputStyle = {
     borderColor: "var(--theme-border)",
     backgroundColor: "var(--theme-bg)",
@@ -236,6 +247,8 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
   };
 
   const dialogRef = useFocusTrap<HTMLFormElement>(true, onCancel);
+  const photoActionClass =
+    "flex min-h-11 flex-1 items-center justify-center px-2 text-xs font-medium";
 
   return (
     <form
@@ -244,19 +257,38 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
       role="dialog"
       aria-modal="true"
       aria-labelledby="memory-form-title"
-      className={`flex max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem))] flex-col overflow-hidden rounded-xl ${theme.cardClass}`}
+      className={
+        fullScreen
+          ? "flex h-full min-h-0 w-full flex-col overflow-hidden"
+          : `flex max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem))] flex-col overflow-hidden rounded-xl ${theme.cardClass}`
+      }
       style={{ backgroundColor: "var(--theme-surface)" }}
     >
-      <div className="flex items-center justify-between border-b px-5 py-4"
+      <div
+        className={`flex items-center justify-between border-b px-5 ${
+          fullScreen
+            ? "pb-4 pt-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))]"
+            : "py-4"
+        }`}
         style={{ borderColor: "var(--theme-border)" }}
       >
-        <h2
-          id="memory-form-title"
-          className="text-lg font-semibold"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          {initial?.id ? "Edit memory" : "Add memory"}
-        </h2>
+        <div className="min-w-0 pr-3">
+          <h2
+            id="memory-form-title"
+            className="text-lg font-semibold md:text-xl"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {initial?.id ? "Edit memory" : "Add memory"}
+          </h2>
+          {fullScreen && (title || placeName) && (
+            <p
+              className="mt-0.5 truncate text-xs"
+              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
+            >
+              {[title, placeName].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </div>
         <button
           type="button"
           onClick={onCancel}
@@ -267,7 +299,12 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+      <div
+        className={`min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 ${
+          fullScreen ? "" : "space-y-4"
+        }`}
+      >
+        <div className={fullScreen ? "mx-auto w-full max-w-2xl space-y-5" : "contents"}>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider"
             style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
@@ -340,7 +377,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
               type="button"
               onClick={handleSearch}
               disabled={searching}
-              className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-white"
+              className="min-h-11 shrink-0 rounded-lg px-4 text-sm font-medium text-white"
               style={{ backgroundColor: "var(--theme-accent)" }}
             >
               {searching ? "..." : "Go"}
@@ -355,7 +392,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
                   <button
                     type="button"
                     onClick={() => selectPlace(r)}
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-black/5"
+                    className="min-h-11 w-full px-3 py-2 text-left text-sm hover:bg-black/5"
                   >
                     <span className="block">{r.placeName}</span>
                     {r.address && r.address !== r.placeName && (
@@ -373,6 +410,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
           )}
         </div>
 
+        <div className={fullScreen ? "grid grid-cols-1 gap-5 md:grid-cols-2" : "contents"}>
         <div>
           <label className="mb-1 block text-xs uppercase tracking-wider"
             style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
@@ -402,6 +440,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
             placeholder="134 Ponsonby Road, Grey Lynn, Auckland"
             rows={2}
           />
+        </div>
         </div>
 
         <div
@@ -441,7 +480,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
             Your journal ({PARTNERS[currentPartner].label})
           </label>
           <textarea
-            className={`${inputClass} min-h-[100px] resize-y`}
+            className={`${inputClass} resize-y ${fullScreen ? "min-h-[10rem]" : "min-h-[100px]"}`}
             style={inputStyle}
             value={myJournal.text}
             onChange={(e) =>
@@ -497,80 +536,186 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
           >
             Photos
           </label>
-          <p className="mb-2 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+          <p className="mb-3 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
             Hidden photos stay off the map, gallery, timeline, and album. Manage them in Settings.
           </p>
-          <div className="flex flex-wrap gap-2">
-            {existingPhotos.map((photo) => (
-              <div key={photo.id} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.url} alt="" loading="lazy" className="h-16 w-16 rounded-lg object-cover" />
-                <button
-                  type="button"
-                  onClick={() => removeExistingPhoto(photo.id)}
-                  className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
-                  aria-label="Delete photo"
+          <div
+            className={
+              fullScreen
+                ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
+                : "flex flex-wrap gap-2"
+            }
+          >
+            {existingPhotos.map((photo) =>
+              fullScreen ? (
+                <div
+                  key={photo.id}
+                  className="overflow-hidden rounded-xl border"
+                  style={{ borderColor: "var(--theme-border)" }}
                 >
-                  ×
-                </button>
-                <button
-                  type="button"
-                  onClick={() => hideExistingPhoto(photo.id)}
-                  className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
-                  style={{
-                    borderColor: "var(--theme-border)",
-                    backgroundColor: "var(--theme-surface)",
-                    color: "var(--theme-ink-muted)",
-                  }}
-                  aria-label="Hide photo"
-                  title="Hide from public views"
+                  <MemoryPhoto
+                    src={photo.url}
+                    path={photo.path}
+                    alt=""
+                    loading="lazy"
+                    className="aspect-square w-full object-cover"
+                  />
+                  <div
+                    className="flex border-t"
+                    style={{ borderColor: "var(--theme-border)" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => hideExistingPhoto(photo.id)}
+                      className={photoActionClass}
+                      style={{ color: "var(--theme-ink-muted)" }}
+                      aria-label="Hide photo"
+                    >
+                      Hide
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeExistingPhoto(photo.id)}
+                      className={`${photoActionClass} border-l text-red-600`}
+                      style={{ borderColor: "var(--theme-border)" }}
+                      aria-label="Delete photo"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={photo.id} className="relative">
+                  <MemoryPhoto
+                    src={photo.url}
+                    path={photo.path}
+                    alt=""
+                    loading="lazy"
+                    className="h-16 w-16 rounded-lg object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingPhoto(photo.id)}
+                    className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
+                    aria-label="Delete photo"
+                  >
+                    ×
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => hideExistingPhoto(photo.id)}
+                    className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
+                    style={{
+                      borderColor: "var(--theme-border)",
+                      backgroundColor: "var(--theme-surface)",
+                      color: "var(--theme-ink-muted)",
+                    }}
+                    aria-label="Hide photo"
+                    title="Hide from public views"
+                  >
+                    Hide
+                  </button>
+                </div>
+              ),
+            )}
+            {photoPreviews.map((url, index) =>
+              fullScreen ? (
+                <div
+                  key={url}
+                  className="overflow-hidden rounded-xl border"
+                  style={{ borderColor: "var(--theme-border)" }}
                 >
-                  Hide
-                </button>
-              </div>
-            ))}
-            {photoPreviews.map((url, index) => (
-              <div key={url} className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={url}
-                  alt=""
-                  className={`h-16 w-16 rounded-lg object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => removeNewPhoto(index)}
-                  className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
-                  aria-label="Remove photo"
-                >
-                  ×
-                </button>
-                <button
-                  type="button"
-                  onClick={() => toggleNewPhotoHidden(index)}
-                  className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
-                  style={{
-                    borderColor: "var(--theme-border)",
-                    backgroundColor: newPhotoHidden[index]
-                      ? "var(--theme-accent)"
-                      : "var(--theme-surface)",
-                    color: newPhotoHidden[index] ? "#fff" : "var(--theme-ink-muted)",
-                  }}
-                  aria-label={newPhotoHidden[index] ? "Mark photo visible" : "Mark photo hidden"}
-                  title={newPhotoHidden[index] ? "Will stay private" : "Hide from public views"}
-                >
-                  {newPhotoHidden[index] ? "Private" : "Hide"}
-                </button>
-              </div>
-            ))}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    className={`aspect-square w-full object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
+                  />
+                  <div
+                    className="flex border-t"
+                    style={{ borderColor: "var(--theme-border)" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleNewPhotoHidden(index)}
+                      className={photoActionClass}
+                      style={{
+                        backgroundColor: newPhotoHidden[index]
+                          ? "var(--theme-accent)"
+                          : "transparent",
+                        color: newPhotoHidden[index] ? "#fff" : "var(--theme-ink-muted)",
+                      }}
+                      aria-label={newPhotoHidden[index] ? "Mark photo visible" : "Mark photo hidden"}
+                    >
+                      {newPhotoHidden[index] ? "Private" : "Hide"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeNewPhoto(index)}
+                      className={`${photoActionClass} border-l text-red-600`}
+                      style={{ borderColor: "var(--theme-border)" }}
+                      aria-label="Remove photo"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div key={url} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt=""
+                    className={`h-16 w-16 rounded-lg object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeNewPhoto(index)}
+                    className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
+                    aria-label="Remove photo"
+                  >
+                    ×
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleNewPhotoHidden(index)}
+                    className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
+                    style={{
+                      borderColor: "var(--theme-border)",
+                      backgroundColor: newPhotoHidden[index]
+                        ? "var(--theme-accent)"
+                        : "var(--theme-surface)",
+                      color: newPhotoHidden[index] ? "#fff" : "var(--theme-ink-muted)",
+                    }}
+                    aria-label={newPhotoHidden[index] ? "Mark photo visible" : "Mark photo hidden"}
+                    title={newPhotoHidden[index] ? "Will stay private" : "Hide from public views"}
+                  >
+                    {newPhotoHidden[index] ? "Private" : "Hide"}
+                  </button>
+                </div>
+              ),
+            )}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={convertingPhotos}
-              className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed text-2xl disabled:opacity-50"
+              className={
+                fullScreen
+                  ? "flex min-h-24 aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-sm disabled:opacity-50"
+                  : "flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed text-2xl disabled:opacity-50"
+              }
               style={{ borderColor: "var(--theme-border)", color: "var(--theme-ink-muted)" }}
             >
-              {convertingPhotos ? "…" : "+"}
+              {convertingPhotos ? (
+                "…"
+              ) : fullScreen ? (
+                <>
+                  <span className="text-2xl leading-none">+</span>
+                  <span className="text-xs">Add photos</span>
+                </>
+              ) : (
+                "+"
+              )}
             </button>
           </div>
           <input
@@ -590,17 +735,27 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
             <p className="mt-2 text-xs text-red-600">{photoError}</p>
           )}
         </div>
+        </div>
       </div>
 
       {saveError && (
-        <p className="border-t px-5 py-3 text-sm text-red-600" style={{ borderColor: "var(--theme-border)" }}>
+        <p
+          className={`border-t px-5 py-3 text-sm text-red-600 ${fullScreen ? "text-center" : ""}`}
+          style={{ borderColor: "var(--theme-border)" }}
+        >
           {saveError}
         </p>
       )}
 
-      <div className="flex items-center gap-3 border-t px-5 py-4"
+      <div
+        className={`flex items-center gap-3 border-t px-5 ${
+          fullScreen
+            ? "pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            : "py-4"
+        }`}
         style={{ borderColor: "var(--theme-border)" }}
       >
+        <div className={fullScreen ? "mx-auto flex w-full max-w-2xl items-center gap-3" : "contents"}>
         {initial?.id && onDelete && (
           <button
             type="button"
@@ -630,7 +785,7 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 rounded-lg border py-2.5 text-sm font-medium"
+          className="min-h-11 flex-1 rounded-lg border py-2.5 text-sm font-medium"
           style={{ borderColor: "var(--theme-border)", color: "var(--theme-ink-muted)" }}
         >
           Cancel
@@ -638,11 +793,12 @@ export function AddMemoryForm({ initial, onSave, onCancel, onDelete }: AddMemory
         <button
           type="submit"
           disabled={saving || !title.trim()}
-          className="flex-1 rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50"
+          className="min-h-11 flex-1 rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50"
           style={{ backgroundColor: "var(--theme-accent)" }}
         >
           {saving ? "Saving..." : "Save memory"}
         </button>
+        </div>
       </div>
     </form>
   );

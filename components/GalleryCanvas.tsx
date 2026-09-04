@@ -5,6 +5,7 @@ import type { Memory } from "@/lib/types";
 import { MILESTONE_ICONS, MILESTONE_LABELS } from "@/lib/types";
 import { formatShortDate } from "@/lib/photos";
 import { WallBackdrop } from "@/components/WallBackdrop";
+import { MemoryPhoto } from "@/components/MemoryPhoto";
 
 interface GalleryCanvasProps {
   memories: Memory[];
@@ -279,8 +280,11 @@ export function GalleryCanvas({
                 <span className="photo-tape photo-tape--tl" />
                 {photoUrl ? (
                   <div className="gallery-frame__photo">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={photoUrl} alt={`${memory.title}, ${formatShortDate(memory.date)}`} loading="lazy" />
+                    <MemoryPhoto
+                      src={photoUrl}
+                      alt={`${memory.title}, ${formatShortDate(memory.date)}`}
+                      loading="lazy"
+                    />
                   </div>
                 ) : (
                   <div className="gallery-frame__plaque">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Memory } from "@/lib/types";
 import { formatShortDate } from "@/lib/photos";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { MemoryPhoto } from "./MemoryPhoto";
 
 export interface LightboxPhoto {
   url: string;
@@ -125,8 +126,7 @@ export function PhotoLightbox({
         className="photo-lightbox__content relative z-10 mx-4 flex max-h-[90vh] max-w-4xl flex-col pb-[env(safe-area-inset-bottom)]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <MemoryPhoto
           src={url}
           alt={`${memory.title}, ${formatShortDate(memory.date)}`}
           className="max-h-[70vh] w-full rounded-lg object-contain shadow-2xl"

@@ -8,6 +8,7 @@ import { useCurrentPartner } from "./CurrentPartnerProvider";
 import { JournalEntries } from "./JournalEntries";
 import { useTheme } from "./ThemeProvider";
 import { PhotoLightbox, type LightboxPhoto } from "./PhotoLightbox";
+import { MemoryPhoto } from "./MemoryPhoto";
 
 interface TimelineCardProps {
   memory: Memory;
@@ -81,8 +82,7 @@ export function TimelineCard({
             {hasPhotos ? (
               <div className="relative">
                 <div className={`relative ${expanded ? "h-72 md:h-96" : "h-56 md:h-72"} overflow-hidden`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <MemoryPhoto
                     src={photoUrls[0]}
                     alt={memory.title}
                     loading="lazy"
@@ -94,8 +94,7 @@ export function TimelineCard({
                 {photoUrls.length > 1 && !expanded && (
                   <div className="flex gap-1.5 overflow-x-auto p-2">
                     {photoUrls.slice(1, 4).map((url, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <MemoryPhoto
                         key={url}
                         src={url}
                         alt={`${memory.title}, photo ${i + 2}`}
@@ -197,8 +196,7 @@ export function TimelineCard({
                       }}
                       className="overflow-hidden rounded-lg"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <MemoryPhoto
                         src={url}
                         alt={`${memory.title}, photo ${i + 1}`}
                         loading="lazy"

@@ -26,7 +26,7 @@ export function useFocusTrap<T extends HTMLElement>(
     const container = containerRef.current;
     if (container) {
       const focusable = getFocusableElements(container);
-      (focusable[0] ?? container).focus();
+      (focusable[0] ?? container).focus({ preventScroll: true });
     }
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -59,7 +59,7 @@ export function useFocusTrap<T extends HTMLElement>(
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      previousFocusRef.current?.focus?.();
+      previousFocusRef.current?.focus?.({ preventScroll: true });
     };
   }, [active, onEscape]);
 

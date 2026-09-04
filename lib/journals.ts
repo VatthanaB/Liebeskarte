@@ -2,8 +2,8 @@ import type { JournalEntry, Memory, PartnerId } from "./types";
 
 export function emptyJournals(): Record<PartnerId, JournalEntry> {
   return {
-    panda: { text: "", shared: false },
-    henne: { text: "", shared: false },
+    panda: { text: "", shared: true },
+    henne: { text: "", shared: true },
   };
 }
 
@@ -33,6 +33,6 @@ export function visibleJournals(
 export function pandaSharedJournal(text: string): Record<PartnerId, JournalEntry> {
   return {
     panda: { text, shared: true },
-    henne: { text: "", shared: false },
+    henne: { text: "", shared: true },
   };
 }

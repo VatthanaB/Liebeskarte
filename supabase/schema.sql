@@ -34,8 +34,8 @@ create table if not exists public.memories (
   journal text not null default '',
   journal_panda text not null default '',
   journal_henne text not null default '',
-  journal_panda_shared boolean not null default false,
-  journal_henne_shared boolean not null default false,
+  journal_panda_shared boolean not null default true,
+  journal_henne_shared boolean not null default true,
   visibility text not null default 'shared',
   owner text,
   created_at timestamptz not null default now(),
@@ -61,8 +61,8 @@ alter table public.memories
 alter table public.memories
   add column if not exists journal_panda text not null default '',
   add column if not exists journal_henne text not null default '',
-  add column if not exists journal_panda_shared boolean not null default false,
-  add column if not exists journal_henne_shared boolean not null default false;
+  add column if not exists journal_panda_shared boolean not null default true,
+  add column if not exists journal_henne_shared boolean not null default true;
 
 update public.memories
 set

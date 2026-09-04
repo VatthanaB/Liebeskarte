@@ -10,11 +10,14 @@ import {
 } from "@/lib/memory-visibility";
 import {
   deletePhoto,
+  deletePhotos,
   getAllPhotos,
   updatePhotoHidden,
 } from "@/lib/db";
 import { LoveLoading } from "@/components/LoveLoading";
 import { DataErrorBanner } from "@/components/DataErrorBanner";
+import { MemoryPhoto } from "@/components/MemoryPhoto";
+import { BatchSelectBar, SelectionMark } from "@/components/BatchSelect";
 import {
   formatShortDate,
   getMemoryMonth,
@@ -84,6 +87,10 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [prevSelectionContext, setPrevSelectionContext] = useState("");
 
   const memoryById = useMemo(
     () => new Map(memories.map((memory) => [memory.id, memory])),
@@ -158,6 +165,11 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     [eventOptions, yearFilter],
   );
 
+  function exitSelect() {
+    setSelecting(false);
+    setSelectedIds(new Set());
+  }
+
   function selectYear(year: number | null) {
     setYearFilter(year);
     setMonthFilter((current) => {
@@ -172,6 +184,34 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     setYearFilter(null);
     setMonthFilter(null);
     setLightboxIndex(null);
+    exitSelect();
+  }
+
+  function enterSelect() {
+    setLightboxIndex(null);
+    setSelecting(true);
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleIds(ids: string[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id));
+      if (allSelected) {
+        for (const id of ids) next.delete(id);
+      } else {
+        for (const id of ids) next.add(id);
+      }
+      return next;
+    });
   }
 
   const filteredPhotos = useMemo(() => {
@@ -228,6 +268,33 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     });
   }, [filteredPhotos]);
 
+  const selectedCount = useMemo(
+    () => filteredPhotos.reduce((count, photo) => count + (selectedIds.has(photo.id) ? 1 : 0), 0),
+    [filteredPhotos, selectedIds],
+  );
+
+  const selectionContext = `${scope}:${visibilityFilter}:${memoryFilter ?? ""}:${yearFilter ?? ""}:${monthFilter ?? ""}`;
+  if (prevSelectionContext !== selectionContext) {
+    setPrevSelectionContext(selectionContext);
+    if (selectedIds.size > 0) {
+      setSelectedIds(new Set());
+    }
+  }
+
+  useEffect(() => {
+    if (!selecting) return;
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setSelecting(false);
+      setSelectedIds(new Set());
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selecting]);
+
   const lightboxPhotos: LightboxPhoto[] = useMemo(
     () =>
       monthGroups
@@ -280,6 +347,39 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
       setActionError("Couldn't delete photo. Try again.");
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function handleDeleteSelected() {
+    const ids = filteredPhotos
+      .map((photo) => photo.id)
+      .filter((id) => selectedIds.has(id));
+    if (ids.length === 0) return;
+
+    const confirmed = await confirm({
+      title: ids.length === 1 ? "Delete this photo?" : `Delete ${ids.length} photos?`,
+      description:
+        ids.length === 1
+          ? `Remove it from “${filteredPhotos.find((photo) => photo.id === ids[0])?.memory?.title ?? "this memory"}”. This cannot be undone.`
+          : "Remove these photos from their memories. This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setBatchBusy(true);
+    setActionError(null);
+    try {
+      await deletePhotos(ids);
+      const removed = new Set(ids);
+      setPhotos((prev) => prev.filter((item) => !removed.has(item.id)));
+      setLightboxIndex(null);
+      exitSelect();
+    } catch (error) {
+      console.error("[atlas:photos] batch delete failed", error);
+      setActionError("Couldn't delete photos. Try again.");
+    } finally {
+      setBatchBusy(false);
     }
   }
 
@@ -466,9 +566,25 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
         </label>
       </div>
 
-      <p className="mb-6 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
-        {filteredPhotos.length} of {scopedPhotos.length} {scope} photos
-      </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+          {filteredPhotos.length} of {scopedPhotos.length} {scope} photos
+        </p>
+        {filteredPhotos.length > 0 && !selecting && (
+          <button
+            type="button"
+            onClick={enterSelect}
+            className="min-h-11 rounded-full border px-4 text-xs font-medium"
+            style={{
+              borderColor: "var(--theme-border)",
+              color: "var(--theme-ink-muted)",
+              fontFamily: "var(--font-label)",
+            }}
+          >
+            Select
+          </button>
+        )}
+      </div>
 
       {filteredPhotos.length === 0 ? (
         <p className="text-center text-sm" style={{ color: "var(--theme-ink-muted)" }}>
@@ -477,120 +593,211 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
             : "No photos match these filters."}
         </p>
       ) : (
-        <div className="space-y-10">
-          {monthGroups.map((group) => (
+        <div className={`space-y-10 ${selecting ? "pb-32" : ""}`}>
+          {monthGroups.map((group) => {
+            const groupIds = group.photos.map((photo) => photo.id);
+            const groupAllSelected = groupIds.every((id) => selectedIds.has(id));
+
+            return (
             <section key={group.key}>
-              <h3
-                className="mb-4 text-lg font-semibold md:text-xl"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {group.label}
-              </h3>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h3
+                  className="text-lg font-semibold md:text-xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {group.label}
+                </h3>
+                {selecting && (
+                  <button
+                    type="button"
+                    onClick={() => toggleIds(groupIds)}
+                    disabled={batchBusy}
+                    className="min-h-11 rounded-full px-3 text-xs font-medium disabled:opacity-50"
+                    style={{
+                      color: "var(--theme-accent)",
+                      fontFamily: "var(--font-label)",
+                    }}
+                  >
+                    {groupAllSelected ? "Deselect month" : "Select month"}
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                 {group.photos.map((photo) => {
                   const memory = photo.memory;
-                  const isBusy = busyId === photo.id;
+                  const isBusy = busyId === photo.id || batchBusy;
+                  const selected = selectedIds.has(photo.id);
+                  const previewLabel = memory?.title ?? photo.name;
+
+                  const cover = (
+                    <div className="relative aspect-square w-full">
+                      {photo.url ? (
+                        <MemoryPhoto
+                          src={photo.url}
+                          path={photo.path}
+                          alt={previewLabel}
+                          loading="lazy"
+                          className={`h-full w-full object-cover ${photo.hidden ? "opacity-60" : ""}`}
+                        />
+                      ) : (
+                        <div
+                          className="flex h-full w-full items-center justify-center text-xs"
+                          style={{ color: "var(--theme-ink-muted)" }}
+                        >
+                          No preview
+                        </div>
+                      )}
+                      {selecting && <SelectionMark selected={selected} />}
+                      {photo.hidden && (
+                        <span
+                          className={`absolute top-2 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white ${
+                            selecting ? "right-2" : "left-2"
+                          }`}
+                          style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
+                        >
+                          Hidden
+                        </span>
+                      )}
+                    </div>
+                  );
 
                   return (
                     <div
                       key={photo.id}
                       className="overflow-hidden rounded-xl border shadow-sm"
-                      style={{ borderColor: "var(--theme-border)" }}
+                      style={{
+                        borderColor: selected && selecting ? "var(--theme-accent)" : "var(--theme-border)",
+                        boxShadow:
+                          selected && selecting
+                            ? "0 0 0 2px var(--theme-accent)"
+                            : undefined,
+                      }}
                     >
-                      <button
-                        type="button"
-                        onClick={() => openLightbox(photo)}
-                        disabled={!photo.url || !memory}
-                        className="relative block w-full overflow-hidden disabled:opacity-50"
-                      >
-                        <div className="relative aspect-square w-full">
-                          {photo.url ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={photo.url}
-                              alt={memory?.title ?? photo.name}
-                              loading="lazy"
-                              className={`h-full w-full object-cover ${photo.hidden ? "opacity-60" : ""}`}
-                            />
-                          ) : (
-                            <div
-                              className="flex h-full w-full items-center justify-center text-xs"
-                              style={{ color: "var(--theme-ink-muted)" }}
-                            >
-                              No preview
+                      {selecting ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleSelected(photo.id)}
+                          disabled={batchBusy}
+                          aria-pressed={selected}
+                          aria-label={`${selected ? "Deselect" : "Select"} ${previewLabel}`}
+                          className="block w-full text-left disabled:opacity-50"
+                        >
+                          {cover}
+                          <div className="space-y-2 p-3">
+                            {memory ? (
+                              <>
+                                <p
+                                  className="truncate text-sm font-medium"
+                                  style={{ fontFamily: "var(--font-display)" }}
+                                >
+                                  {memory.title}
+                                </p>
+                                <p
+                                  className="truncate text-xs"
+                                  style={{
+                                    color: "var(--theme-ink-muted)",
+                                    fontFamily: "var(--font-label)",
+                                  }}
+                                >
+                                  {formatShortDate(memory.date)} · {memory.placeName}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+                                Memory not found
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => openLightbox(photo)}
+                            disabled={!photo.url || !memory}
+                            className="relative block w-full overflow-hidden disabled:opacity-50"
+                          >
+                            {cover}
+                          </button>
+
+                          <div className="space-y-2 p-3">
+                            {memory ? (
+                              <>
+                                <p
+                                  className="truncate text-sm font-medium"
+                                  style={{ fontFamily: "var(--font-display)" }}
+                                >
+                                  {memory.title}
+                                </p>
+                                <p
+                                  className="truncate text-xs"
+                                  style={{
+                                    color: "var(--theme-ink-muted)",
+                                    fontFamily: "var(--font-label)",
+                                  }}
+                                >
+                                  {formatShortDate(memory.date)} · {memory.placeName}
+                                </p>
+                                <Link
+                                  href={`/?memory=${memory.id}`}
+                                  className="inline-block min-h-11 py-2 text-xs font-medium underline underline-offset-2"
+                                  style={{ color: "var(--theme-accent)" }}
+                                >
+                                  View memory on map
+                                </Link>
+                              </>
+                            ) : (
+                              <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+                                Memory not found
+                              </p>
+                            )}
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleHidden(photo)}
+                                disabled={isBusy}
+                                className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
+                                style={{
+                                  borderColor: "var(--theme-border)",
+                                  color: "var(--theme-ink-muted)",
+                                }}
+                              >
+                                {photo.hidden ? "Show" : "Hide"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(photo)}
+                                disabled={isBusy}
+                                className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                                style={{ backgroundColor: "#dc2626" }}
+                              >
+                                Delete
+                              </button>
                             </div>
-                          )}
-                          {photo.hidden && (
-                            <span
-                              className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white"
-                              style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
-                            >
-                              Hidden
-                            </span>
-                          )}
-                        </div>
-                      </button>
-
-                      <div className="space-y-2 p-3">
-                        {memory ? (
-                          <>
-                            <p
-                              className="truncate text-sm font-medium"
-                              style={{ fontFamily: "var(--font-display)" }}
-                            >
-                              {memory.title}
-                            </p>
-                            <p
-                              className="truncate text-xs"
-                              style={{ color: "var(--theme-ink-muted)", fontFamily: "var(--font-label)" }}
-                            >
-                              {formatShortDate(memory.date)} · {memory.placeName}
-                            </p>
-                            <Link
-                              href={`/?memory=${memory.id}`}
-                              className="inline-block text-xs font-medium underline underline-offset-2"
-                              style={{ color: "var(--theme-accent)" }}
-                            >
-                              View memory on map
-                            </Link>
-                          </>
-                        ) : (
-                          <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
-                            Memory not found
-                          </p>
-                        )}
-
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleHidden(photo)}
-                            disabled={isBusy}
-                            className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
-                            style={{
-                              borderColor: "var(--theme-border)",
-                              color: "var(--theme-ink-muted)",
-                            }}
-                          >
-                            {photo.hidden ? "Show" : "Hide"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(photo)}
-                            disabled={isBusy}
-                            className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
-                            style={{ backgroundColor: "#dc2626" }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </section>
-          ))}
+            );
+          })}
         </div>
+      )}
+
+      {selecting && (
+        <BatchSelectBar
+          selectedCount={selectedCount}
+          visibleCount={filteredPhotos.length}
+          busy={batchBusy}
+          noun={{ singular: "photo", plural: "photos" }}
+          onSelectAll={() => toggleIds(filteredPhotos.map((photo) => photo.id))}
+          onExit={exitSelect}
+          onDelete={handleDeleteSelected}
+        />
       )}
 
       {lightboxIndex !== null && lightboxPhotos.length > 0 && (

@@ -22,6 +22,7 @@ import {
   type PhotoEntry,
 } from "@/lib/photos";
 import { PhotoLightbox, type LightboxPhoto } from "./PhotoLightbox";
+import { MemoryPhoto } from "./MemoryPhoto";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
 
 interface AlbumGridProps {
@@ -293,8 +294,7 @@ export function AlbumGrid({ memories, photoUrlMap }: AlbumGridProps) {
                       }}
                     >
                       <div className={`relative ${mosaicAspect(index)} w-full overflow-hidden`}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <MemoryPhoto
                           src={entry.url}
                           alt={entry.memory.title}
                           loading="lazy"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Memory, MilestoneType } from "@/lib/types";
 import { MILESTONE_ICONS, MILESTONE_LABELS } from "@/lib/types";
@@ -9,8 +9,9 @@ import {
   personalMemoriesFor,
   sharedMemories,
 } from "@/lib/memory-visibility";
-import { deleteMemory } from "@/lib/db";
+import { deleteMemories, deleteMemory } from "@/lib/db";
 import { DataErrorBanner } from "@/components/DataErrorBanner";
+import { BatchSelectBar, SelectionMark } from "@/components/BatchSelect";
 import {
   formatShortDate,
   getMemoryMonth,
@@ -22,6 +23,7 @@ import {
 import { useCurrentPartner } from "./CurrentPartnerProvider";
 import { useConfirm } from "./ConfirmDialog";
 import { AddMemoryForm } from "./AddMemoryForm";
+import { MemoryPhoto } from "./MemoryPhoto";
 
 type MemoryScope = "shared" | "personal";
 type MemorySort = "event-date-desc" | "event-date-asc" | "event-title";
@@ -64,6 +66,11 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [prevSelectionContext, setPrevSelectionContext] = useState("");
+  const editorScrollYRef = useRef(0);
 
   const manageableMemories = useMemo(
     () => memories.filter((memory) => canManageMemory(memory, partner)),
@@ -90,12 +97,50 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
     });
   }
 
+  function exitSelect() {
+    setSelecting(false);
+    setSelectedIds(new Set());
+  }
+
   function selectScope(nextScope: MemoryScope) {
     setScope(nextScope);
     setTypeFilter(null);
     setYearFilter(null);
     setMonthFilter(null);
     setEditingMemory(null);
+    exitSelect();
+  }
+
+  function enterSelect() {
+    setEditingMemory(null);
+    setSelecting(true);
+  }
+
+  function openEditor(memory: Memory) {
+    editorScrollYRef.current = window.scrollY;
+    setEditingMemory(memory);
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleIds(ids: string[]) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id));
+      if (allSelected) {
+        for (const id of ids) next.delete(id);
+      } else {
+        for (const id of ids) next.add(id);
+      }
+      return next;
+    });
   }
 
   const filteredMemories = useMemo(() => {
@@ -137,12 +182,63 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
     return Array.from(groups.values()).sort((a, b) => b.key.localeCompare(a.key));
   }, [filteredMemories]);
 
+  const selectedCount = useMemo(
+    () => filteredMemories.reduce((count, memory) => count + (selectedIds.has(memory.id) ? 1 : 0), 0),
+    [filteredMemories, selectedIds],
+  );
+
+  const selectionContext = `${scope}:${typeFilter ?? ""}:${yearFilter ?? ""}:${monthFilter ?? ""}`;
+  if (prevSelectionContext !== selectionContext) {
+    setPrevSelectionContext(selectionContext);
+    if (selectedIds.size > 0) {
+      setSelectedIds(new Set());
+    }
+  }
+
+  useEffect(() => {
+    if (!selecting) return;
+
+    function onKey(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setSelecting(false);
+      setSelectedIds(new Set());
+    }
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selecting]);
+
   useEffect(() => {
     if (!editingMemory) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const y = editorScrollYRef.current;
+    const body = document.body;
+    const previous = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+    };
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${y}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+
     return () => {
-      document.body.style.overflow = previousOverflow;
+      body.style.overflow = previous.overflow;
+      body.style.position = previous.position;
+      body.style.top = previous.top;
+      body.style.left = previous.left;
+      body.style.right = previous.right;
+      body.style.width = previous.width;
+      window.scrollTo(0, y);
+      requestAnimationFrame(() => window.scrollTo(0, y));
     };
   }, [editingMemory]);
 
@@ -159,10 +255,16 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
     setActionError(null);
     try {
       await deleteMemory(memory.id);
-      if (editingMemory?.id === memory.id) {
+      const y = editorScrollYRef.current;
+      const closingEditor = editingMemory?.id === memory.id;
+      if (closingEditor) {
         setEditingMemory(null);
       }
-      onReload();
+      void Promise.resolve(onReload()).finally(() => {
+        if (!closingEditor) return;
+        window.scrollTo(0, y);
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      });
     } catch (error) {
       console.error("[atlas:memories] delete failed", error);
       setActionError("Couldn't delete memory. Try again.");
@@ -171,9 +273,47 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
     }
   }
 
-  function handleSave(_memory: Memory) {
+  async function handleDeleteSelected() {
+    const ids = filteredMemories
+      .map((memory) => memory.id)
+      .filter((id) => selectedIds.has(id));
+    if (ids.length === 0) return;
+
+    const confirmed = await confirm({
+      title: ids.length === 1 ? "Delete this memory?" : `Delete ${ids.length} memories?`,
+      description:
+        ids.length === 1
+          ? `Remove “${filteredMemories.find((memory) => memory.id === ids[0])?.title ?? "this memory"}” and all its photos. This cannot be undone.`
+          : "Remove these memories and all their photos. This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    setBatchBusy(true);
+    setActionError(null);
+    try {
+      await deleteMemories(ids);
+      if (editingMemory && ids.includes(editingMemory.id)) {
+        setEditingMemory(null);
+      }
+      exitSelect();
+      onReload();
+    } catch (error) {
+      console.error("[atlas:memories] batch delete failed", error);
+      setActionError("Couldn't delete memories. Try again.");
+    } finally {
+      setBatchBusy(false);
+    }
+  }
+
+  function handleSave() {
+    const y = editorScrollYRef.current;
     setEditingMemory(null);
-    onReload();
+    void Promise.resolve(onReload()).finally(() => {
+      window.scrollTo(0, y);
+      requestAnimationFrame(() => window.scrollTo(0, y));
+    });
   }
 
   async function handleDeleteFromEditor() {
@@ -326,9 +466,25 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
         </label>
       </div>
 
-      <p className="mb-6 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
-        {filteredMemories.length} of {scopedMemories.length} {scope} memories
-      </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs" style={{ color: "var(--theme-ink-muted)" }}>
+          {filteredMemories.length} of {scopedMemories.length} {scope} memories
+        </p>
+        {filteredMemories.length > 0 && !selecting && (
+          <button
+            type="button"
+            onClick={enterSelect}
+            className="min-h-11 rounded-full border px-4 text-xs font-medium"
+            style={{
+              borderColor: "var(--theme-border)",
+              color: "var(--theme-ink-muted)",
+              fontFamily: "var(--font-label)",
+            }}
+          >
+            Select
+          </button>
+        )}
+      </div>
 
       {filteredMemories.length === 0 ? (
         <p className="text-center text-sm" style={{ color: "var(--theme-ink-muted)" }}>
@@ -337,152 +493,236 @@ export function MemoryManager({ memories, photoUrlMap, onReload }: MemoryManager
             : "No memories match these filters."}
         </p>
       ) : (
-        <div className="space-y-10">
-          {monthGroups.map((group) => (
+        <div className={`space-y-10 ${selecting ? "pb-32" : ""}`}>
+          {monthGroups.map((group) => {
+            const groupIds = group.memories.map((memory) => memory.id);
+            const groupAllSelected = groupIds.every((id) => selectedIds.has(id));
+
+            return (
             <section key={group.key}>
-              <h3
-                className="mb-4 text-lg font-semibold md:text-xl"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {group.label}
-              </h3>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h3
+                  className="text-lg font-semibold md:text-xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {group.label}
+                </h3>
+                {selecting && (
+                  <button
+                    type="button"
+                    onClick={() => toggleIds(groupIds)}
+                    disabled={batchBusy}
+                    className="min-h-11 rounded-full px-3 text-xs font-medium disabled:opacity-50"
+                    style={{
+                      color: "var(--theme-accent)",
+                      fontFamily: "var(--font-label)",
+                    }}
+                  >
+                    {groupAllSelected ? "Deselect month" : "Select month"}
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
                 {group.memories.map((memory) => {
                   const coverUrl = photoUrlMap[memory.id]?.[0];
-                  const isBusy = busyId === memory.id;
+                  const isBusy = busyId === memory.id || batchBusy;
                   const photoCount = photoUrlMap[memory.id]?.length ?? 0;
+                  const selected = selectedIds.has(memory.id);
+
+                  const cover = (
+                    <div className="relative aspect-square w-full">
+                      {coverUrl ? (
+                        <MemoryPhoto
+                          src={coverUrl}
+                          alt={memory.title}
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center"
+                          style={{ backgroundColor: "var(--theme-accent-light)" }}
+                        >
+                          <span className="text-2xl" aria-hidden="true">
+                            {MILESTONE_ICONS[memory.type]}
+                          </span>
+                          <span
+                            className="text-xs font-medium"
+                            style={{ color: "var(--theme-ink-muted)" }}
+                          >
+                            {MILESTONE_LABELS[memory.type]}
+                          </span>
+                        </div>
+                      )}
+                      {selecting && <SelectionMark selected={selected} />}
+                      {photoCount > 1 && (
+                        <span
+                          className="absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium text-white"
+                          style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
+                        >
+                          {photoCount} photos
+                        </span>
+                      )}
+                    </div>
+                  );
+
+                  const caption = (
+                    <div className="space-y-2 p-3 text-left">
+                      <p
+                        className="truncate text-sm font-medium"
+                        style={{ fontFamily: "var(--font-display)" }}
+                      >
+                        {memory.title}
+                      </p>
+                      <p
+                        className="truncate text-xs"
+                        style={{
+                          color: "var(--theme-ink-muted)",
+                          fontFamily: "var(--font-label)",
+                        }}
+                      >
+                        {formatShortDate(memory.date)} · {memory.placeName}
+                      </p>
+                      <p
+                        className="truncate text-xs"
+                        style={{
+                          color: "var(--theme-ink-muted)",
+                          fontFamily: "var(--font-label)",
+                        }}
+                      >
+                        {MILESTONE_LABELS[memory.type]}
+                      </p>
+                    </div>
+                  );
 
                   return (
                     <div
                       key={memory.id}
                       className="overflow-hidden rounded-xl border shadow-sm"
-                      style={{ borderColor: "var(--theme-border)" }}
+                      style={{
+                        borderColor: selected && selecting ? "var(--theme-accent)" : "var(--theme-border)",
+                        boxShadow:
+                          selected && selecting
+                            ? "0 0 0 2px var(--theme-accent)"
+                            : undefined,
+                      }}
                     >
-                      <Link
-                        href={`/?memory=${memory.id}`}
-                        className="relative block w-full overflow-hidden"
-                      >
-                        <div className="relative aspect-square w-full">
-                          {coverUrl ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={coverUrl}
-                              alt={memory.title}
-                              loading="lazy"
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div
-                              className="flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center"
-                              style={{ backgroundColor: "var(--theme-accent-light)" }}
-                            >
-                              <span className="text-2xl" aria-hidden="true">
-                                {MILESTONE_ICONS[memory.type]}
-                              </span>
-                              <span
-                                className="text-xs font-medium"
-                                style={{ color: "var(--theme-ink-muted)" }}
-                              >
-                                {MILESTONE_LABELS[memory.type]}
-                              </span>
-                            </div>
-                          )}
-                          {photoCount > 1 && (
-                            <span
-                              className="absolute right-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium text-white"
-                              style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
-                            >
-                              {photoCount} photos
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-
-                      <div className="space-y-2 p-3">
-                        <p
-                          className="truncate text-sm font-medium"
-                          style={{ fontFamily: "var(--font-display)" }}
+                      {selecting ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleSelected(memory.id)}
+                          disabled={batchBusy}
+                          aria-pressed={selected}
+                          aria-label={`${selected ? "Deselect" : "Select"} ${memory.title}`}
+                          className="block w-full disabled:opacity-50"
                         >
-                          {memory.title}
-                        </p>
-                        <p
-                          className="truncate text-xs"
-                          style={{
-                            color: "var(--theme-ink-muted)",
-                            fontFamily: "var(--font-label)",
-                          }}
-                        >
-                          {formatShortDate(memory.date)} · {memory.placeName}
-                        </p>
-                        <p
-                          className="truncate text-xs"
-                          style={{
-                            color: "var(--theme-ink-muted)",
-                            fontFamily: "var(--font-label)",
-                          }}
-                        >
-                          {MILESTONE_LABELS[memory.type]}
-                        </p>
-
-                        <div className="flex flex-wrap gap-2 pt-1">
+                          {cover}
+                          {caption}
+                        </button>
+                      ) : (
+                        <>
                           <Link
                             href={`/?memory=${memory.id}`}
-                            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border px-3 py-2 text-center text-xs font-medium"
-                            style={{
-                              borderColor: "var(--theme-border)",
-                              color: "var(--theme-ink-muted)",
-                            }}
+                            className="relative block w-full overflow-hidden"
                           >
-                            View on map
+                            {cover}
                           </Link>
-                          <button
-                            type="button"
-                            onClick={() => setEditingMemory(memory)}
-                            disabled={isBusy}
-                            className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
-                            style={{
-                              borderColor: "var(--theme-border)",
-                              color: "var(--theme-ink-muted)",
-                            }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(memory)}
-                            disabled={isBusy}
-                            className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
-                            style={{ backgroundColor: "#dc2626" }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
+                          <div className="space-y-2 p-3">
+                            <p
+                              className="truncate text-sm font-medium"
+                              style={{ fontFamily: "var(--font-display)" }}
+                            >
+                              {memory.title}
+                            </p>
+                            <p
+                              className="truncate text-xs"
+                              style={{
+                                color: "var(--theme-ink-muted)",
+                                fontFamily: "var(--font-label)",
+                              }}
+                            >
+                              {formatShortDate(memory.date)} · {memory.placeName}
+                            </p>
+                            <p
+                              className="truncate text-xs"
+                              style={{
+                                color: "var(--theme-ink-muted)",
+                                fontFamily: "var(--font-label)",
+                              }}
+                            >
+                              {MILESTONE_LABELS[memory.type]}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              <Link
+                                href={`/?memory=${memory.id}`}
+                                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border px-3 py-2 text-center text-xs font-medium"
+                                style={{
+                                  borderColor: "var(--theme-border)",
+                                  color: "var(--theme-ink-muted)",
+                                }}
+                              >
+                                View on map
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => openEditor(memory)}
+                                disabled={isBusy}
+                                className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
+                                style={{
+                                  borderColor: "var(--theme-border)",
+                                  color: "var(--theme-ink-muted)",
+                                }}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(memory)}
+                                disabled={isBusy}
+                                className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                                style={{ backgroundColor: "#dc2626" }}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </section>
-          ))}
+            );
+          })}
         </div>
       )}
 
+      {selecting && (
+        <BatchSelectBar
+          selectedCount={selectedCount}
+          visibleCount={filteredMemories.length}
+          busy={batchBusy}
+          noun={{ singular: "memory", plural: "memories" }}
+          onSelectAll={() => toggleIds(filteredMemories.map((memory) => memory.id))}
+          onExit={exitSelect}
+          onDelete={handleDeleteSelected}
+        />
+      )}
+
       {editingMemory && (
-        <div className="fixed inset-0 z-[1100]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Close editor"
-            onClick={() => setEditingMemory(null)}
+        <div
+          className="fixed inset-0 z-[1100] h-dvh"
+          style={{ backgroundColor: "var(--theme-surface)" }}
+        >
+          <AddMemoryForm
+            initial={editingMemory}
+            onSave={handleSave}
+            onCancel={() => setEditingMemory(null)}
+            onDelete={handleDeleteFromEditor}
+            fullScreen
           />
-          <div className="absolute bottom-0 left-0 right-0 max-h-[70vh] overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
-            <AddMemoryForm
-              initial={editingMemory}
-              onSave={handleSave}
-              onCancel={() => setEditingMemory(null)}
-              onDelete={handleDeleteFromEditor}
-            />
-          </div>
         </div>
       )}
     </>

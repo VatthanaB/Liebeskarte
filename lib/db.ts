@@ -1,7 +1,15 @@
+import { invalidateCachedPhoto } from "./image-cache";
 import { createClient } from "./supabase";
 import { emptyJournals } from "./journals";
 import { preparePhotoFile } from "./photo-file";
 import { validatePhotoFile, MAX_PHOTO_BYTES } from "./photo-limits";
+import {
+  getCachedSignedUrl,
+  invalidateSignedUrl,
+  partitionSignedUrlPaths,
+  setCachedSignedUrl,
+  SIGNED_URL_TTL_SEC,
+} from "./signed-url-cache";
 import type {
   JournalEntry,
   Memory,
@@ -41,16 +49,50 @@ interface PhotoRow {
   created_at: string;
 }
 
-async function mapPhotoRow(row: PhotoRow): Promise<Photo> {
+function mapPhotoRow(row: PhotoRow, urlByPath: Map<string, string>): Photo {
   return {
     id: row.id,
     memoryId: row.memory_id,
     name: row.name,
     path: row.path,
-    url: await signedUrl(row.path),
+    url: urlByPath.get(row.path) ?? "",
     hidden: row.hidden ?? false,
     createdAt: row.created_at,
   };
+}
+
+async function signPhotoPaths(paths: string[]): Promise<Map<string, string>> {
+  const uniquePaths = [...new Set(paths.filter(Boolean))];
+  const { cached, missing } = partitionSignedUrlPaths(uniquePaths);
+  const urlByPath = new Map(cached);
+
+  if (missing.length === 0) {
+    return urlByPath;
+  }
+
+  const supabase = createClient();
+  const { data, error } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .createSignedUrls(missing, SIGNED_URL_TTL_SEC);
+
+  if (error) {
+    console.error("[atlas:db] batch signed urls failed", error);
+    return urlByPath;
+  }
+
+  const expiresAt = Date.now() + SIGNED_URL_TTL_SEC * 1000;
+  for (const item of data ?? []) {
+    if (item.error || !item.signedUrl || !item.path) continue;
+    setCachedSignedUrl(item.path, item.signedUrl, expiresAt);
+    urlByPath.set(item.path, item.signedUrl);
+  }
+
+  return urlByPath;
+}
+
+async function mapPhotoRows(rows: PhotoRow[]): Promise<Photo[]> {
+  const urlByPath = await signPhotoPaths(rows.map((row) => row.path));
+  return rows.map((row) => mapPhotoRow(row, urlByPath));
 }
 
 function mapJournals(row: MemoryRow): Record<PartnerId, JournalEntry> {
@@ -59,11 +101,11 @@ function mapJournals(row: MemoryRow): Record<PartnerId, JournalEntry> {
   if (row.journal_panda !== undefined || row.journal_henne !== undefined) {
     journals.panda = {
       text: row.journal_panda ?? "",
-      shared: row.journal_panda_shared ?? false,
+      shared: row.journal_panda_shared ?? true,
     };
     journals.henne = {
       text: row.journal_henne ?? "",
-      shared: row.journal_henne_shared ?? false,
+      shared: row.journal_henne_shared ?? true,
     };
     return journals;
   }
@@ -94,36 +136,12 @@ function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
   };
 }
 
-const SIGNED_URL_TTL_SEC = 60 * 60 * 24;
-/** Refresh cached URLs one hour before expiry. */
-const SIGNED_URL_REFRESH_BUFFER_MS = 60 * 60 * 1000;
-
-const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
-
-export function invalidateSignedUrl(path: string): void {
-  signedUrlCache.delete(path);
-}
-
 async function signedUrl(path: string): Promise<string> {
-  const cached = signedUrlCache.get(path);
-  if (cached && cached.expiresAt > Date.now() + SIGNED_URL_REFRESH_BUFFER_MS) {
-    return cached.url;
-  }
+  const cached = getCachedSignedUrl(path);
+  if (cached) return cached;
 
-  const supabase = createClient();
-  const { data, error } = await supabase.storage
-    .from(PHOTO_BUCKET)
-    .createSignedUrl(path, SIGNED_URL_TTL_SEC);
-  if (error || !data?.signedUrl) {
-    console.error("[atlas:db] signed url failed", error);
-    return "";
-  }
-
-  signedUrlCache.set(path, {
-    url: data.signedUrl,
-    expiresAt: Date.now() + SIGNED_URL_TTL_SEC * 1000,
-  });
-  return data.signedUrl;
+  const urlByPath = await signPhotoPaths([path]);
+  return urlByPath.get(path) ?? "";
 }
 
 export async function getAllMemories(): Promise<Memory[]> {
@@ -182,17 +200,34 @@ export async function saveMemory(memory: Memory): Promise<void> {
   if (error) throw error;
 }
 
-export async function deleteMemory(id: string): Promise<void> {
+export async function deleteMemories(ids: string[]): Promise<void> {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
   const supabase = createClient();
-  const photos = await getPhotosForMemory(id);
-  if (photos.length > 0) {
-    for (const photo of photos) {
-      invalidateSignedUrl(photo.path);
-    }
-    await supabase.storage.from(PHOTO_BUCKET).remove(photos.map((photo) => photo.path));
+  const { data, error: photoError } = await supabase
+    .from("photos")
+    .select("path")
+    .in("memory_id", uniqueIds);
+  if (photoError) throw photoError;
+
+  const paths = [
+    ...new Set((data ?? []).map((row) => row.path as string).filter(Boolean)),
+  ];
+  for (const path of paths) {
+    invalidateSignedUrl(path);
+    void invalidateCachedPhoto(path);
   }
-  const { error } = await supabase.from("memories").delete().eq("id", id);
+  if (paths.length > 0) {
+    await supabase.storage.from(PHOTO_BUCKET).remove(paths);
+  }
+
+  const { error } = await supabase.from("memories").delete().in("id", uniqueIds);
   if (error) throw error;
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  await deleteMemories([id]);
 }
 
 export async function getPhotosForMemory(memoryId: string): Promise<Photo[]> {
@@ -206,7 +241,7 @@ export async function getPhotosForMemory(memoryId: string): Promise<Photo[]> {
   if (error) throw error;
 
   const rows = (data ?? []) as PhotoRow[];
-  return Promise.all(rows.map(mapPhotoRow));
+  return mapPhotoRows(rows);
 }
 
 export async function getAllPhotos(): Promise<Photo[]> {
@@ -219,7 +254,7 @@ export async function getAllPhotos(): Promise<Photo[]> {
   if (error) throw error;
 
   const rows = (data ?? []) as PhotoRow[];
-  return Promise.all(rows.map(mapPhotoRow));
+  return mapPhotoRows(rows);
 }
 
 export async function updatePhotoHidden(id: string, hidden: boolean): Promise<void> {
@@ -255,6 +290,7 @@ export async function savePhoto(input: {
     .upload(path, file, {
       upsert: true,
       contentType: file.type || "image/jpeg",
+      cacheControl: "31536000",
     });
   if (uploadError) throw uploadError;
 
@@ -278,14 +314,29 @@ export async function savePhoto(input: {
   };
 }
 
-export async function deletePhoto(id: string): Promise<void> {
+export async function deletePhotos(ids: string[]): Promise<void> {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
   const supabase = createClient();
-  const { data, error } = await supabase.from("photos").select("path").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("photos").select("path").in("id", uniqueIds);
   if (error) throw error;
-  if (data?.path) {
-    invalidateSignedUrl(data.path as string);
-    await supabase.storage.from(PHOTO_BUCKET).remove([data.path as string]);
+
+  const paths = [
+    ...new Set((data ?? []).map((row) => row.path as string).filter(Boolean)),
+  ];
+  for (const path of paths) {
+    invalidateSignedUrl(path);
+    void invalidateCachedPhoto(path);
   }
-  const { error: deleteError } = await supabase.from("photos").delete().eq("id", id);
+  if (paths.length > 0) {
+    await supabase.storage.from(PHOTO_BUCKET).remove(paths);
+  }
+
+  const { error: deleteError } = await supabase.from("photos").delete().in("id", uniqueIds);
   if (deleteError) throw deleteError;
+}
+
+export async function deletePhoto(id: string): Promise<void> {
+  await deletePhotos([id]);
 }

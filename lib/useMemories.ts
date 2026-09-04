@@ -11,6 +11,14 @@ import { createClient, hasSupabaseConfig } from "@/lib/supabase";
 
 const REALTIME_RELOAD_MS = 400;
 
+interface MemoriesSnapshot {
+  memories: Memory[];
+  photos: Photo[];
+  photoUrlMap: Record<string, string[]>;
+}
+
+let lastSnapshot: MemoriesSnapshot | null = null;
+
 function loadErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim()) {
     return error.message;
@@ -50,12 +58,14 @@ export function useMemories() {
   const { user } = useAuth();
   const { partner } = useCurrentPartner();
   const { showHiddenPhotos } = useShowHiddenPhotos();
-  const [memories, setMemories] = useState<Memory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [memories, setMemories] = useState<Memory[]>(() => lastSnapshot?.memories ?? []);
+  const [loading, setLoading] = useState(() => lastSnapshot === null);
   const [error, setError] = useState<string | null>(null);
-  const [photoUrlMap, setPhotoUrlMap] = useState<Record<string, string[]>>({});
+  const [photoUrlMap, setPhotoUrlMap] = useState<Record<string, string[]>>(
+    () => lastSnapshot?.photoUrlMap ?? {},
+  );
   const loadGenerationRef = useRef(0);
-  const hasLoadedRef = useRef(false);
+  const hasLoadedRef = useRef(lastSnapshot !== null);
 
   const loadMemories = useCallback(async (options?: LoadMemoriesOptions) => {
     if (AUTH_ENABLED && !user) {
@@ -64,6 +74,7 @@ export function useMemories() {
       setError(null);
       setLoading(false);
       hasLoadedRef.current = true;
+      lastSnapshot = null;
       return;
     }
 
@@ -78,9 +89,15 @@ export function useMemories() {
       if (generation !== loadGenerationRef.current) return;
 
       const visible = data.filter((memory) => visibleToPartner(memory, partner));
+      const nextPhotoUrlMap = buildPhotoUrlMap(visible, allPhotos, showHiddenPhotos);
       setMemories(visible);
-      setPhotoUrlMap(buildPhotoUrlMap(visible, allPhotos, showHiddenPhotos));
+      setPhotoUrlMap(nextPhotoUrlMap);
       setError(null);
+      lastSnapshot = {
+        memories: visible,
+        photos: allPhotos,
+        photoUrlMap: nextPhotoUrlMap,
+      };
     } catch (err) {
       if (generation !== loadGenerationRef.current) return;
       console.error("[atlas:db] loadMemories failed", err);

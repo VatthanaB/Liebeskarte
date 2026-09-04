@@ -5,6 +5,7 @@ import type { Memory, MilestoneType } from "@/lib/types";
 import { MILESTONE_ICONS, MILESTONE_LABELS } from "@/lib/types";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
 import { JournalEntries } from "./JournalEntries";
+import { MemoryPhoto } from "./MemoryPhoto";
 import { useTheme } from "./ThemeProvider";
 
 interface MemoryStackNav {
@@ -127,8 +128,7 @@ export function MemoryCard({
 
       {photoUrls[0] && (
         <div className={`relative ${compact ? "h-32" : "h-48"} w-full overflow-hidden`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <MemoryPhoto
             src={photoUrls[0]}
             alt={memory.title}
             loading="lazy"
@@ -196,8 +196,7 @@ export function MemoryCard({
           {photoUrls.length > 1 && (
             <div className="mt-4 flex gap-2 overflow-x-auto">
               {photoUrls.slice(1).map((url, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <MemoryPhoto
                   key={url}
                   src={url}
                   alt={`${memory.title}, photo ${i + 2}`}
