@@ -153,8 +153,7 @@ export function MapCanvas({
 
     if (spec.labelUrl) {
       labelLayerRef.current = L.tileLayer(spec.labelUrl, {
-        subdomains: "abcd",
-        maxZoom: 20,
+        maxZoom: spec.maxZoom,
         pane: "overlayPane",
         opacity: 0.85,
       }).addTo(map);

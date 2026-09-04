@@ -11,6 +11,9 @@ export interface MapLayer {
   labelUrl?: string;
 }
 
+const ESRI_ATTRIBUTION =
+  "Tiles © Esri, Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community";
+
 export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
   watercolor: {
     id: "watercolor",
@@ -18,28 +21,26 @@ export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
     description: "Painted paper, the cutest journal look",
     url: "https://watercolormaps.collection.cooperhewitt.org/tile/watercolor/{z}/{x}/{y}.jpg",
     attribution:
-      'Map tiles by <a href="http://stamen.com">Stamen Design</a>, hosted by <a href="https://www.cooperhewitt.org/">Cooper Hewitt</a> · © OpenStreetMap',
+      'Map tiles by <a href="http://stamen.com">Stamen Design</a>, hosted by <a href="https://www.cooperhewitt.org/">Cooper Hewitt</a> · © OpenStreetMap · Overlay © Esri',
     maxZoom: 16,
+    // Labels-only overlay; Esri, no API key (CARTO raster now watermarks without one).
     labelUrl:
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}",
   },
   voyager: {
     id: "voyager",
-    name: "Voyager",
-    description: "Clean warm streets",
-    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CARTO',
-    maxZoom: 20,
-    subdomains: "abcd",
+    name: "Streets",
+    description: "Clean streets and cities",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+    attribution: ESRI_ATTRIBUTION,
+    maxZoom: 19,
   },
   terrain: {
     id: "terrain",
     name: "Terrain",
     description: "Illustrated hills and parks",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-    attribution:
-      "Tiles © Esri, Esri, DeLorme, NAVTEQ, TomTom, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community",
+    attribution: ESRI_ATTRIBUTION,
     maxZoom: 19,
   },
 };

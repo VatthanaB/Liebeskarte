@@ -42,7 +42,8 @@ export const THEME: ThemeTokens = {
     border: "#E8DFD0",
     line: "#C4704B",
   },
-  mapStyle: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  mapStyle:
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
   markerColors: {
     met: "#C4704B",
     date: "#6B8F71",
