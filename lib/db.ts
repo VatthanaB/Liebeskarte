@@ -10,6 +10,7 @@ import {
   setCachedSignedUrl,
   SIGNED_URL_TTL_SEC,
 } from "./signed-url-cache";
+import { withCoverFirst } from "./photos";
 import type {
   JournalEntry,
   Memory,
@@ -36,6 +37,7 @@ interface MemoryRow {
   journal_henne_shared?: boolean;
   visibility?: MemoryVisibility;
   owner?: PartnerId | null;
+  cover_photo_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -118,6 +120,7 @@ function mapJournals(row: MemoryRow): Record<PartnerId, JournalEntry> {
 }
 
 function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
+  const coverPhotoId = row.cover_photo_id ?? null;
   return {
     id: row.id,
     title: row.title,
@@ -128,7 +131,8 @@ function mapMemory(row: MemoryRow, photoIds: string[] = []): Memory {
     address: row.address ?? "",
     type: row.type,
     journals: mapJournals(row),
-    photoIds,
+    photoIds: withCoverFirst(photoIds, coverPhotoId, (id) => id),
+    coverPhotoId,
     visibility: row.visibility ?? "shared",
     owner: row.owner ?? null,
     createdAt: row.created_at,
@@ -192,6 +196,7 @@ export async function saveMemory(memory: Memory): Promise<void> {
     journal_henne_shared: memory.journals.henne.shared,
     visibility: memory.visibility,
     owner: memory.owner,
+    cover_photo_id: memory.coverPhotoId,
     created_at: memory.createdAt,
     updated_at: memory.updatedAt,
     created_by: user?.id ?? null,
@@ -260,6 +265,21 @@ export async function getAllPhotos(): Promise<Photo[]> {
 export async function updatePhotoHidden(id: string, hidden: boolean): Promise<void> {
   const supabase = createClient();
   const { error } = await supabase.from("photos").update({ hidden }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateMemoryCoverPhoto(
+  memoryId: string,
+  photoId: string | null,
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("memories")
+    .update({
+      cover_photo_id: photoId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", memoryId);
   if (error) throw error;
 }
 

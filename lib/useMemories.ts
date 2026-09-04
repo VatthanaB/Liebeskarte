@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAllMemories, getAllPhotos } from "@/lib/db";
+import { withCoverFirst } from "@/lib/photos";
 import type { Memory, Photo } from "@/lib/types";
 import { AUTH_ENABLED, useAuth } from "@/lib/auth";
 import { useShowHiddenPhotos } from "@/components/ShowHiddenPhotosProvider";
@@ -41,7 +42,11 @@ function buildPhotoUrlMap(
   const urlMap: Record<string, string[]> = {};
   for (const memory of visible) {
     const memoryPhotos = photosByMemory.get(memory.id) ?? [];
-    urlMap[memory.id] = memoryPhotos
+    urlMap[memory.id] = withCoverFirst(
+      memoryPhotos,
+      memory.coverPhotoId,
+      (photo) => photo.id,
+    )
       .filter((photo) => showHiddenPhotos || !photo.hidden)
       .map((photo) => photo.url)
       .filter(Boolean);

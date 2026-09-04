@@ -7,7 +7,14 @@ import { MILESTONE_LABELS, PARTNERS } from "@/lib/types";
 import { emptyJournals, otherPartnerId } from "@/lib/journals";
 import { canChangeMemoryVisibility } from "@/lib/memory-visibility";
 import { searchPlaces, type GeocodeResult } from "@/lib/geocode";
-import { saveMemory, savePhoto, getPhotosForMemory, deletePhoto, updatePhotoHidden } from "@/lib/db";
+import {
+  saveMemory,
+  savePhoto,
+  getPhotosForMemory,
+  deletePhoto,
+  updatePhotoHidden,
+  updateMemoryCoverPhoto,
+} from "@/lib/db";
 import { looksLikeHeic, preparePhotoFile } from "@/lib/photo-file";
 import { validatePhotoFile } from "@/lib/photo-limits";
 import { useCurrentPartner } from "./CurrentPartnerProvider";
@@ -24,6 +31,18 @@ interface AddMemoryFormProps {
 }
 
 const MILESTONE_TYPES = Object.keys(MILESTONE_LABELS) as MilestoneType[];
+
+function CoverBadge({ active }: { active: boolean }) {
+  if (!active) return null;
+  return (
+    <span
+      className="absolute left-2 top-2 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white"
+      style={{ backgroundColor: "var(--theme-accent)", fontFamily: "var(--font-label)" }}
+    >
+      Cover
+    </span>
+  );
+}
 
 export function AddMemoryForm({
   initial,
@@ -58,6 +77,10 @@ export function AddMemoryForm({
   const [existingPhotoIds, setExistingPhotoIds] = useState<string[]>(
     initial?.photoIds ?? []
   );
+  const [coverPhotoId, setCoverPhotoId] = useState<string | null>(
+    initial?.coverPhotoId ?? null,
+  );
+  const [coverNewIndex, setCoverNewIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [searching, setSearching] = useState(false);
   const [convertingPhotos, setConvertingPhotos] = useState(false);
@@ -136,12 +159,19 @@ export function AddMemoryForm({
           return;
         }
       }
-      const prepared = await Promise.all(files.map(preparePhotoFile));
+      const prepared: File[] = [];
+      for (const file of files) {
+        prepared.push(await preparePhotoFile(file));
+      }
       setPhotoFiles((prev) => [...prev, ...prepared]);
       setNewPhotoHidden((prev) => [...prev, ...prepared.map(() => false)]);
     } catch (error) {
       console.error("[atlas] photo convert failed", error);
-      setPhotoError("Couldn't read a HEIC photo. Try exporting it as JPEG.");
+      setPhotoError(
+        error instanceof Error && error.message.trim()
+          ? error.message
+          : "Couldn't read a HEIC photo. Try exporting it as JPEG.",
+      );
     } finally {
       setConvertingPhotos(false);
     }
@@ -177,6 +207,14 @@ export function AddMemoryForm({
           },
         },
         photoIds,
+        coverPhotoId:
+          coverNewIndex !== null
+            ? (initial?.coverPhotoId && existingPhotoIds.includes(initial.coverPhotoId)
+                ? initial.coverPhotoId
+                : null)
+            : coverPhotoId && existingPhotoIds.includes(coverPhotoId)
+              ? coverPhotoId
+              : null,
         visibility: canToggleVisibility && isPersonal ? "personal" : (initial?.visibility ?? "shared"),
         owner: isEditing ? (initial?.owner ?? null) : currentPartner,
         createdAt: initial?.createdAt ?? now,
@@ -185,6 +223,7 @@ export function AddMemoryForm({
 
       await saveMemory(memory);
 
+      const newPhotoIds: string[] = [];
       for (let i = 0; i < photoFiles.length; i++) {
         const photoId = uuidv4();
         await savePhoto({
@@ -193,13 +232,21 @@ export function AddMemoryForm({
           file: photoFiles[i],
           hidden: newPhotoHidden[i] ?? false,
         });
+        newPhotoIds.push(photoId);
         photoIds.push(photoId);
       }
 
-      if (photoFiles.length > 0) {
-        await saveMemory({ ...memory, photoIds });
+      const resolvedCover =
+        coverNewIndex !== null
+          ? (newPhotoIds[coverNewIndex] ?? memory.coverPhotoId)
+          : coverPhotoId && photoIds.includes(coverPhotoId)
+            ? coverPhotoId
+            : memory.coverPhotoId;
+
+      if (newPhotoIds.length > 0 || resolvedCover !== memory.coverPhotoId) {
+        await saveMemory({ ...memory, photoIds, coverPhotoId: resolvedCover });
       }
-      onSave(memory);
+      onSave({ ...memory, photoIds, coverPhotoId: resolvedCover });
     } catch (err) {
       console.error("[atlas] save memory failed", err);
       setSaveError(
@@ -216,6 +263,25 @@ export function AddMemoryForm({
     await deletePhoto(photoId);
     setExistingPhotos((prev) => prev.filter((photo) => photo.id !== photoId));
     setExistingPhotoIds((prev) => prev.filter((id) => id !== photoId));
+    setCoverPhotoId((current) => (current === photoId ? null : current));
+  }
+
+  async function chooseExistingCover(photoId: string) {
+    setCoverNewIndex(null);
+    setCoverPhotoId(photoId);
+    setPhotoError(null);
+    if (!isEditing) return;
+    try {
+      await updateMemoryCoverPhoto(memoryId, photoId);
+    } catch (error) {
+      console.error("[atlas] set cover photo failed", error);
+      setPhotoError("Couldn't set cover photo. Try again.");
+    }
+  }
+
+  function chooseNewCover(index: number) {
+    setCoverPhotoId(null);
+    setCoverNewIndex(index);
   }
 
   async function hideExistingPhoto(photoId: string) {
@@ -234,6 +300,12 @@ export function AddMemoryForm({
   function removeNewPhoto(index: number) {
     setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
     setNewPhotoHidden((prev) => prev.filter((_, i) => i !== index));
+    setCoverNewIndex((current) => {
+      if (current === null) return null;
+      if (current === index) return null;
+      if (current > index) return current - 1;
+      return current;
+    });
   }
 
   const inputClass = `w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 ${
@@ -537,7 +609,8 @@ export function AddMemoryForm({
             Photos
           </label>
           <p className="mb-3 text-xs" style={{ color: "var(--theme-ink-muted)" }}>
-            Hidden photos stay off the map, gallery, timeline, and album. Manage them in Settings.
+            Tap a photo to use it as the event cover on the map, timeline, and album. Hidden photos
+            stay off those views. Manage them in Settings.
           </p>
           <div
             className={
@@ -546,20 +619,33 @@ export function AddMemoryForm({
                 : "flex flex-wrap gap-2"
             }
           >
-            {existingPhotos.map((photo) =>
-              fullScreen ? (
+            {existingPhotos.map((photo) => {
+              const isCover = coverNewIndex === null && coverPhotoId === photo.id;
+              return fullScreen ? (
                 <div
                   key={photo.id}
                   className="overflow-hidden rounded-xl border"
-                  style={{ borderColor: "var(--theme-border)" }}
+                  style={{
+                    borderColor: isCover ? "var(--theme-accent)" : "var(--theme-border)",
+                    boxShadow: isCover ? "0 0 0 2px var(--theme-accent)" : undefined,
+                  }}
                 >
-                  <MemoryPhoto
-                    src={photo.url}
-                    path={photo.path}
-                    alt=""
-                    loading="lazy"
-                    className="aspect-square w-full object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => chooseExistingCover(photo.id)}
+                    className="relative block w-full"
+                    aria-pressed={isCover}
+                    aria-label={isCover ? "Event cover photo" : "Set as event cover photo"}
+                  >
+                    <MemoryPhoto
+                      src={photo.url}
+                      path={photo.path}
+                      alt=""
+                      loading="lazy"
+                      className="aspect-square w-full object-cover"
+                    />
+                    <CoverBadge active={isCover} />
+                  </button>
                   <div
                     className="flex border-t"
                     style={{ borderColor: "var(--theme-border)" }}
@@ -586,17 +672,32 @@ export function AddMemoryForm({
                 </div>
               ) : (
                 <div key={photo.id} className="relative">
-                  <MemoryPhoto
-                    src={photo.url}
-                    path={photo.path}
-                    alt=""
-                    loading="lazy"
-                    className="h-16 w-16 rounded-lg object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => chooseExistingCover(photo.id)}
+                    className="relative block"
+                    aria-pressed={isCover}
+                    aria-label={isCover ? "Event cover photo" : "Set as event cover photo"}
+                  >
+                    <MemoryPhoto
+                      src={photo.url}
+                      path={photo.path}
+                      alt=""
+                      loading="lazy"
+                      className="h-16 w-16 rounded-lg object-cover"
+                    />
+                    {isCover && (
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-lg"
+                        style={{ boxShadow: "inset 0 0 0 2px var(--theme-accent)" }}
+                        aria-hidden
+                      />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => removeExistingPhoto(photo.id)}
-                    className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
+                    className="absolute -right-2 -top-2 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
                     aria-label="Delete photo"
                   >
                     ×
@@ -604,7 +705,7 @@ export function AddMemoryForm({
                   <button
                     type="button"
                     onClick={() => hideExistingPhoto(photo.id)}
-                    className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
+                    className="absolute -bottom-1 -left-1 z-10 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
                     style={{
                       borderColor: "var(--theme-border)",
                       backgroundColor: "var(--theme-surface)",
@@ -616,21 +717,34 @@ export function AddMemoryForm({
                     Hide
                   </button>
                 </div>
-              ),
-            )}
-            {photoPreviews.map((url, index) =>
-              fullScreen ? (
+              );
+            })}
+            {photoPreviews.map((url, index) => {
+              const isCover = coverNewIndex === index;
+              return fullScreen ? (
                 <div
                   key={url}
                   className="overflow-hidden rounded-xl border"
-                  style={{ borderColor: "var(--theme-border)" }}
+                  style={{
+                    borderColor: isCover ? "var(--theme-accent)" : "var(--theme-border)",
+                    boxShadow: isCover ? "0 0 0 2px var(--theme-accent)" : undefined,
+                  }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className={`aspect-square w-full object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => chooseNewCover(index)}
+                    className="relative block w-full"
+                    aria-pressed={isCover}
+                    aria-label={isCover ? "Event cover photo" : "Set as event cover photo"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className={`aspect-square w-full object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
+                    />
+                    <CoverBadge active={isCover} />
+                  </button>
                   <div
                     className="flex border-t"
                     style={{ borderColor: "var(--theme-border)" }}
@@ -662,16 +776,31 @@ export function AddMemoryForm({
                 </div>
               ) : (
                 <div key={url} className="relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={url}
-                    alt=""
-                    className={`h-16 w-16 rounded-lg object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => chooseNewCover(index)}
+                    className="relative block"
+                    aria-pressed={isCover}
+                    aria-label={isCover ? "Event cover photo" : "Set as event cover photo"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className={`h-16 w-16 rounded-lg object-cover ${newPhotoHidden[index] ? "opacity-50" : ""}`}
+                    />
+                    {isCover && (
+                      <span
+                        className="pointer-events-none absolute inset-0 rounded-lg"
+                        style={{ boxShadow: "inset 0 0 0 2px var(--theme-accent)" }}
+                        aria-hidden
+                      />
+                    )}
+                  </button>
                   <button
                     type="button"
                     onClick={() => removeNewPhoto(index)}
-                    className="absolute -right-2 -top-2 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
+                    className="absolute -right-2 -top-2 z-10 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-red-500 text-xs text-white focus-visible:outline-none focus-visible:ring-2"
                     aria-label="Remove photo"
                   >
                     ×
@@ -679,7 +808,7 @@ export function AddMemoryForm({
                   <button
                     type="button"
                     onClick={() => toggleNewPhotoHidden(index)}
-                    className="absolute -bottom-1 -left-1 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
+                    className="absolute -bottom-1 -left-1 z-10 flex h-11 min-w-11 items-center justify-center rounded-full border px-2 text-[10px] font-medium"
                     style={{
                       borderColor: "var(--theme-border)",
                       backgroundColor: newPhotoHidden[index]
@@ -693,8 +822,8 @@ export function AddMemoryForm({
                     {newPhotoHidden[index] ? "Private" : "Hide"}
                   </button>
                 </div>
-              ),
-            )}
+              );
+            })}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}

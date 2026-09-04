@@ -74,6 +74,20 @@ alter table public.photos
   add column if not exists hidden boolean not null default false;
 
 alter table public.memories
+  add column if not exists cover_photo_id uuid;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'memories_cover_photo_id_fkey'
+  ) then
+    alter table public.memories
+      add constraint memories_cover_photo_id_fkey
+      foreign key (cover_photo_id) references public.photos (id) on delete set null;
+  end if;
+end $$;
+
+alter table public.memories
   add column if not exists visibility text not null default 'shared',
   add column if not exists owner text;
 
@@ -214,6 +228,33 @@ create trigger protect_memory_privacy
   before insert or update on public.memories
   for each row execute function public.protect_memory_privacy();
 
+create or replace function public.protect_memory_cover_photo()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.cover_photo_id is null then
+    return new;
+  end if;
+
+  if not exists (
+    select 1
+    from public.photos p
+    where p.id = new.cover_photo_id
+      and p.memory_id = new.id
+  ) then
+    raise exception 'Cover photo must belong to this memory';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_memory_cover_photo on public.memories;
+create trigger protect_memory_cover_photo
+  before insert or update on public.memories
+  for each row execute function public.protect_memory_cover_photo();
+
 create or replace function public.touch_sync_events()
 returns trigger
 language plpgsql
@@ -322,7 +363,8 @@ select
   m.owner,
   m.created_at,
   m.updated_at,
-  m.created_by
+  m.created_by,
+  m.cover_photo_id
 from public.memories m
 where public.is_couple_member()
   and (

@@ -42,6 +42,21 @@ export const MONTH_SHORT_LABELS = [
   "Dec",
 ] as const;
 
+/** Move the chosen cover photo to the front; otherwise keep the incoming order. */
+export function withCoverFirst<T>(
+  items: T[],
+  coverId: string | null | undefined,
+  getId: (item: T) => string,
+): T[] {
+  if (!coverId) return items;
+  const index = items.findIndex((item) => getId(item) === coverId);
+  if (index <= 0) return items;
+  const next = [...items];
+  const [cover] = next.splice(index, 1);
+  next.unshift(cover);
+  return next;
+}
+
 export function getMemoryYear(memory: Memory): number {
   return new Date(memory.date).getFullYear();
 }

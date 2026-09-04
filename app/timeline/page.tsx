@@ -121,21 +121,17 @@ export default function TimelinePage() {
       </main>
 
       {editingMemory && (
-        <div className="fixed inset-0 z-[1100]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Close editor"
-            onClick={() => setEditingMemory(null)}
+        <div
+          className="fixed inset-0 z-[1100] h-dvh"
+          style={{ backgroundColor: "var(--theme-surface)" }}
+        >
+          <AddMemoryForm
+            initial={editingMemory}
+            onSave={handleSave}
+            onCancel={() => setEditingMemory(null)}
+            onDelete={handleDelete}
+            fullScreen
           />
-          <div className="absolute bottom-0 left-0 right-0 max-h-[70vh] overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:bottom-auto md:left-auto md:top-20 md:right-6 md:max-h-[calc(100dvh-6rem)] md:w-96 md:p-0 md:pb-0">
-            <AddMemoryForm
-              initial={editingMemory}
-              onSave={handleSave}
-              onCancel={() => setEditingMemory(null)}
-              onDelete={handleDelete}
-            />
-          </div>
         </div>
       )}
     </div>

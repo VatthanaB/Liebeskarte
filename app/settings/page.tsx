@@ -103,7 +103,7 @@ export default function SettingsPage() {
               onReload={reload}
             />
           ) : (
-            <PhotoManager memories={memories} />
+            <PhotoManager memories={memories} onReload={reload} />
           )}
         </section>
       </main>

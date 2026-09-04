@@ -6,10 +6,11 @@ const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://watercolormaps.collection.cooperhewitt.org https://server.arcgisonline.com https://*.supabase.co https://*.supabase.in",
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org`,
+  `connect-src 'self' blob: https://${supabaseHost} wss://${supabaseHost} https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org`,
+  "worker-src 'self' blob:",
   "font-src 'self' data:",
   "frame-ancestors 'none'",
   "base-uri 'self'",

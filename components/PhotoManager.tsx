@@ -12,6 +12,7 @@ import {
   deletePhoto,
   deletePhotos,
   getAllPhotos,
+  updateMemoryCoverPhoto,
   updatePhotoHidden,
 } from "@/lib/db";
 import { LoveLoading } from "@/components/LoveLoading";
@@ -41,6 +42,7 @@ type PhotoSort =
 
 interface PhotoManagerProps {
   memories: Memory[];
+  onReload?: (options?: { silent?: boolean }) => void;
 }
 
 interface ManagedPhoto extends Photo {
@@ -72,7 +74,7 @@ function sortManagedPhotos(photos: ManagedPhoto[], sort: PhotoSort): ManagedPhot
   return sorted;
 }
 
-export function PhotoManager({ memories }: PhotoManagerProps) {
+export function PhotoManager({ memories, onReload }: PhotoManagerProps) {
   const { partner } = useCurrentPartner();
   const confirm = useConfirm();
   const [photos, setPhotos] = useState<ManagedPhoto[]>([]);
@@ -97,6 +99,15 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     [memories],
   );
 
+  const photosWithMemories = useMemo(
+    () =>
+      photos.map((photo) => ({
+        ...photo,
+        memory: memoryById.get(photo.memoryId) ?? photo.memory,
+      })),
+    [photos, memoryById],
+  );
+
   const scopedMemories = useMemo(() => {
     if (scope === "personal") return personalMemoriesFor(memories, partner);
     return sharedMemories(memories);
@@ -104,12 +115,12 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
 
   const manageablePhotos = useMemo(
     () =>
-      photos.filter((photo) => {
+      photosWithMemories.filter((photo) => {
         const memory = photo.memory;
         if (!memory) return false;
         return canManageMemory(memory, partner);
       }),
-    [photos, partner],
+    [photosWithMemories, partner],
   );
 
   const scopedPhotos = useMemo(
@@ -133,7 +144,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
       setPhotos(
         rows.map((photo) => ({
           ...photo,
-          memory: memoryById.get(photo.memoryId),
+          memory: undefined,
         })),
       );
     } catch (error) {
@@ -142,7 +153,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
     } finally {
       setLoading(false);
     }
-  }, [memoryById]);
+  }, []);
 
   useEffect(() => {
     loadPhotos();
@@ -306,6 +317,31 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
         })),
     [monthGroups],
   );
+
+  async function handleSetCover(photo: ManagedPhoto) {
+    if (!photo.memory || photo.memory.coverPhotoId === photo.id) return;
+
+    setBusyId(photo.id);
+    setActionError(null);
+    try {
+      await updateMemoryCoverPhoto(photo.memoryId, photo.id);
+      setPhotos((prev) =>
+        prev.map((item) => {
+          if (item.memoryId !== photo.memoryId || !item.memory) return item;
+          return {
+            ...item,
+            memory: { ...item.memory, coverPhotoId: photo.id },
+          };
+        }),
+      );
+      onReload?.({ silent: true });
+    } catch (error) {
+      console.error("[atlas:photos] set cover failed", error);
+      setActionError("Couldn't set cover photo. Try again.");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function handleToggleHidden(photo: ManagedPhoto) {
     setBusyId(photo.id);
@@ -628,6 +664,7 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
                   const isBusy = busyId === photo.id || batchBusy;
                   const selected = selectedIds.has(photo.id);
                   const previewLabel = memory?.title ?? photo.name;
+                  const isCover = memory?.coverPhotoId === photo.id;
 
                   const cover = (
                     <div className="relative aspect-square w-full">
@@ -648,10 +685,20 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
                         </div>
                       )}
                       {selecting && <SelectionMark selected={selected} />}
-                      {photo.hidden && (
+                      {isCover && (
                         <span
                           className={`absolute top-2 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white ${
                             selecting ? "right-2" : "left-2"
+                          }`}
+                          style={{ backgroundColor: "var(--theme-accent)" }}
+                        >
+                          Cover
+                        </span>
+                      )}
+                      {photo.hidden && (
+                        <span
+                          className={`absolute right-2 rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-white ${
+                            selecting && isCover ? "top-10" : "top-2"
                           }`}
                           style={{ backgroundColor: "rgba(0,0,0,0.65)" }}
                         >
@@ -752,28 +799,43 @@ export function PhotoManager({ memories }: PhotoManagerProps) {
                               </p>
                             )}
 
-                            <div className="flex flex-wrap gap-2 pt-1">
+                            <div className="flex flex-col gap-2 pt-1">
                               <button
                                 type="button"
-                                onClick={() => handleToggleHidden(photo)}
-                                disabled={isBusy}
-                                className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
+                                onClick={() => handleSetCover(photo)}
+                                disabled={isBusy || isCover || !memory}
+                                className="min-h-11 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
                                 style={{
-                                  borderColor: "var(--theme-border)",
-                                  color: "var(--theme-ink-muted)",
+                                  borderColor: isCover ? "var(--theme-accent)" : "var(--theme-border)",
+                                  backgroundColor: isCover ? "var(--theme-accent)" : "transparent",
+                                  color: isCover ? "#fff" : "var(--theme-ink-muted)",
                                 }}
                               >
-                                {photo.hidden ? "Show" : "Hide"}
+                                {isCover ? "Event cover" : "Set as cover"}
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(photo)}
-                                disabled={isBusy}
-                                className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
-                                style={{ backgroundColor: "#dc2626" }}
-                              >
-                                Delete
-                              </button>
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleHidden(photo)}
+                                  disabled={isBusy}
+                                  className="min-h-11 flex-1 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"
+                                  style={{
+                                    borderColor: "var(--theme-border)",
+                                    color: "var(--theme-ink-muted)",
+                                  }}
+                                >
+                                  {photo.hidden ? "Show" : "Hide"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(photo)}
+                                  disabled={isBusy}
+                                  className="min-h-11 flex-1 rounded-lg px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+                                  style={{ backgroundColor: "#dc2626" }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </>

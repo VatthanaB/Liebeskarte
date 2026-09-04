@@ -1,7 +1,7 @@
 import type { Memory } from "./types";
 import { pandaSharedJournal } from "./journals";
 
-const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner">[] = [
+const RAW_SAMPLE_MEMORIES: Omit<Memory, "visibility" | "owner" | "coverPhotoId">[] = [
   {
     id: "5ac968e8-1276-450d-a6c3-6d317eaa6920",
     title: "Where we met",
@@ -280,6 +280,7 @@ export const SAMPLE_MEMORIES: Memory[] = RAW_SAMPLE_MEMORIES.map((memory) => ({
   ...memory,
   visibility: "shared",
   owner: null,
+  coverPhotoId: null,
 }));
 
 /** Short Auckland cluster for the empty-map demo seed (development only). */

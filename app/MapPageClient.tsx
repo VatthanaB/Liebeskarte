@@ -282,21 +282,17 @@ export default function MapPageClient() {
       )}
 
       {showForm && formInitial && (
-        <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="Close editor"
-            onClick={handleCloseEditor}
+        <div
+          className="pointer-events-auto fixed inset-0 z-[1100] h-dvh"
+          style={{ backgroundColor: "var(--theme-surface)" }}
+        >
+          <AddMemoryForm
+            initial={formInitial}
+            onSave={handleSave}
+            onCancel={handleCloseEditor}
+            onDelete={formInitial.id ? handleDelete : undefined}
+            fullScreen
           />
-          <div className="relative z-10 w-full max-w-md pointer-events-auto">
-            <AddMemoryForm
-              initial={formInitial}
-              onSave={handleSave}
-              onCancel={handleCloseEditor}
-              onDelete={formInitial.id ? handleDelete : undefined}
-            />
-          </div>
         </div>
       )}
 

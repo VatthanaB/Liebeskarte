@@ -33,6 +33,7 @@ export interface Memory {
   type: MilestoneType;
   journals: Record<PartnerId, JournalEntry>;
   photoIds: string[];
+  coverPhotoId: string | null;
   visibility: MemoryVisibility;
   owner: PartnerId | null;
   createdAt: string;
