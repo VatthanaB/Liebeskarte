@@ -1,4 +1,4 @@
-export type MapLayerId = "watercolor" | "voyager" | "terrain";
+export type MapLayerId = "watercolor" | "voyager" | "terrain" | "satellite";
 
 export interface MapLayer {
   id: MapLayerId;
@@ -43,11 +43,25 @@ export const MAP_LAYERS: Record<MapLayerId, MapLayer> = {
     attribution: ESRI_ATTRIBUTION,
     maxZoom: 19,
   },
+  satellite: {
+    id: "satellite",
+    name: "Satellite",
+    description: "The real place from above",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    attribution:
+      "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+    maxZoom: 19,
+  },
 };
 
 export const DEFAULT_MAP_LAYER: MapLayerId = "terrain";
 
-export const MAP_LAYER_ORDER: MapLayerId[] = ["terrain", "watercolor", "voyager"];
+export const MAP_LAYER_ORDER: MapLayerId[] = [
+  "terrain",
+  "watercolor",
+  "voyager",
+  "satellite",
+];
 export const MAP_LAYER_STORAGE_KEY = "our-atlas-map-layer";
 
 export function getStoredMapLayer(): MapLayerId {

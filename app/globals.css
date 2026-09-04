@@ -589,6 +589,12 @@ body {
 .gift-letter__screen--delay-2 { animation-delay: 0.16s; }
 .gift-letter__screen--delay-3 { animation-delay: 0.24s; }
 
+.gift-letter__love {
+  display: block;
+  min-height: 1.65em;
+  margin-top: 0.35rem;
+}
+
 @keyframes giftLetterSealPulse {
   0%,
   100% { transform: scale(1); }

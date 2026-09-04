@@ -348,9 +348,9 @@ export function MapCanvas({
           <button
             type="button"
             onClick={cycleLayer}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full px-2 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
+            className="flex min-h-11 items-center justify-center gap-1.5 rounded-full px-3 transition-colors hover:bg-[var(--theme-accent-light)] active:bg-[var(--theme-accent-light)] focus-visible:outline-none focus-visible:ring-2"
             aria-label={`Map style: ${MAP_LAYERS[layerId].name}. Tap to change.`}
-            title={MAP_LAYERS[layerId].name}
+            title={MAP_LAYERS[layerId].description}
           >
             <svg
               width="14"
@@ -367,6 +367,9 @@ export function MapCanvas({
               <path d="m2 17 10 5 10-5" />
               <path d="m2 12 10 5 10-5" />
             </svg>
+            <span className="whitespace-nowrap text-xs font-medium">
+              {MAP_LAYERS[layerId].name}
+            </span>
           </button>
           <span
             className="h-3 w-px shrink-0"
